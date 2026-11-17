@@ -1,0 +1,3269 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bitCREATE — Android Launcher Forge &amp; APK Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip for client-side Android Gradle Project + GitHub Actions .zip generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- Google Fonts: Syne, Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@600;800&family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            display: ['"Syne"', '"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            cyber: ['"Orbitron"', 'sans-serif'],
+            editorial: ['"Playfair Display"', 'serif'],
+            grotesk: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            forge: {
+              bg: '#090a0f',
+              surface: '#12141d',
+              elevated: '#191c28',
+              indigo: '#6366f1',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              frost: '#eef2ff'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Tactile non-template studio atmosphere */
+    body {
+      background-color: #090a0f;
+      background-image:
+        radial-gradient(ellipse 60% 42% at 12% 0%, rgba(99, 102, 241, 0.20) 0%, transparent 60%),
+        radial-gradient(ellipse 52% 38% at 92% 8%, rgba(16, 185, 129, 0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 48% 40% at 50% 100%, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
+
+    .glass-card {
+      background: linear-gradient(165deg, rgba(22, 25, 36, 0.88) 0%, rgba(14, 16, 24, 0.94) 100%);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow:
+        0 24px 56px -14px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
+    }
+
+    .phone-bezel {
+      background: linear-gradient(145deg, #242838 0%, #0d0f16 50%, #1c202e 100%);
+      box-shadow:
+        0 30px 70px -12px rgba(0, 0, 0, 0.88),
+        0 0 0 1px rgba(255, 255, 255, 0.12),
+        inset 0 2px 4px rgba(255, 255, 255, 0.16);
+    }
+
+    /* Custom sleek scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+    /* Custom range sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.12);
+      height: 5px;
+      border-radius: 9999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #eef2ff;
+      cursor: pointer;
+      border: 2px solid #4f46e5;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 16 Distinct Icon Mask Shapes */
+    .mask-squircle { border-radius: 26%; }
+    .mask-circle { border-radius: 9999px; }
+    .mask-rounded { border-radius: 12px; }
+    .mask-sharp { border-radius: 3px; }
+    .mask-teardrop { border-radius: 50% 50% 6px 50%; }
+    .mask-leaf { border-radius: 50% 6px 50% 6px; }
+    .mask-pebble { border-radius: 42% 58% 48% 52% / 54% 44% 56% 46%; }
+    .mask-pill { border-radius: 9999px; transform: scaleX(1.12); }
+    .mask-arch { border-radius: 50% 50% 10px 10px; }
+    .mask-hexagon { clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%); }
+    .mask-octagon { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
+    .mask-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+    .mask-shield { clip-path: polygon(10% 0%, 90% 0%, 95% 60%, 50% 100%, 5% 60%); }
+    .mask-star { clip-path: polygon(50% 0%, 63% 35%, 98% 35%, 70% 57%, 79% 91%, 50% 70%, 21% 91%, 30% 57%, 2% 35%, 37% 35%); }
+    .mask-flower { clip-path: polygon(50% 0%, 72% 14%, 93% 14%, 86% 36%, 100% 50%, 86% 64%, 93% 86%, 72% 86%, 50% 100%, 28% 86%, 7% 86%, 14% 64%, 0% 50%, 14% 36%, 7% 14%, 28% 14%); }
+    .mask-cut-corner { clip-path: polygon(22% 0%, 100% 0%, 100% 78%, 78% 100%, 0% 100%, 0% 22%); }
+
+    /* Wallpaper Patterns */
+    .bg-dotmatrix {
+      background-color: #08090d;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+    .bg-cybergrid {
+      background-color: #060812;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .bg-retro98 {
+      background-color: #008080;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING STUDIO HEADER & MULTI-SECTION PILL NAVIGATION                -->
+  <!-- ===================================================================== -->
+  <header class="w-full sticky top-0 z-40 pt-3 px-3 sm:px-6 pointer-events-none">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-2.5 rounded-[28px] lg:rounded-full glass-card border border-white/[0.09] flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
+
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-emerald-400 to-amber-400 p-[2px] shadow-lg shadow-indigo-950/60 shrink-0">
+          <div class="w-full h-full rounded-full bg-[#0b0c12] flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="4" width="6.5" height="6.5" rx="2" fill="#eef2ff" />
+              <rect x="13.5" y="4" width="6.5" height="6.5" rx="3.25" fill="#10b981" />
+              <rect x="4" y="13.5" width="6.5" height="6.5" rx="3.25" fill="#6366f1" />
+              <path d="M16.75 13.5V20M13.5 16.75H20" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-lg tracking-tight text-white leading-none">bitCREATE</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-400/25">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>PRO STUDIO</span>
+            </span>
+          </div>
+          <span class="text-[11px] text-slate-400 hidden sm:inline">16 Launcher Engines &middot; 16 Icon Shapes &middot; 100% Working Cloud APK</span>
+        </div>
+      </div>
+
+      <!-- Primary Workspace Navigation Pills -->
+      <nav id="mainNavTabs" class="flex items-center gap-1 overflow-x-auto max-w-full py-0.5">
+        <button type="button" data-tab="studio" class="nav-pill active px-3.5 py-1.5 rounded-full bg-indigo-500/25 border border-indigo-400/50 text-xs font-bold text-white whitespace-nowrap transition cursor-pointer">
+          1. Launcher Studio
+        </button>
+        <button type="button" data-tab="icons" class="nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-slate-400 hover:text-white whitespace-nowrap transition cursor-pointer">
+          2. App Icon &amp; Name
+        </button>
+        <button type="button" data-tab="wallpapers" class="nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-slate-400 hover:text-white whitespace-nowrap transition cursor-pointer">
+          3. Wallpaper Forge
+        </button>
+        <button type="button" data-tab="guide" class="nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-emerald-300 hover:text-white whitespace-nowrap transition cursor-pointer">
+          4. Easy APK Guide
+        </button>
+        <button type="button" data-tab="code" class="nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-slate-400 hover:text-white whitespace-nowrap transition cursor-pointer">
+          5. Kotlin &amp; CI Code
+        </button>
+        <button type="button" data-tab="labs" class="nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-slate-400 hover:text-white whitespace-nowrap transition cursor-pointer">
+          6. Edge Labs
+        </button>
+      </nav>
+
+      <!-- One-Click Export CTAs -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          id="randomizeBuildBtn"
+          type="button"
+          class="h-9 px-3.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+          title="Generate a random custom launcher combination"
+        >
+          <span>🎲 Shuffle Build</span>
+        </button>
+        <button
+          id="downloadHtmlPrototypeBtn"
+          type="button"
+          class="h-9 px-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.14] text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+          title="Download standalone interactive HTML launcher file"
+        >
+          <span>Download .HTML</span>
+        </button>
+        <button
+          id="downloadZipTopBtn"
+          type="button"
+          class="h-9 px-4 rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 hover:from-indigo-400 hover:to-emerald-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/60 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+          </svg>
+          <span>Export Android .ZIP</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Status Banner -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden max-w-sm px-4 py-3 rounded-2xl glass-card border border-emerald-400/40 text-xs font-medium text-emerald-200 shadow-2xl flex items-center gap-2.5">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+    <span id="toastText">Launcher updated.</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT WORKSPACE                                                -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-3 sm:px-6 py-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: PRO LAUNCHER CUSTOMIZER + LIVE PHONE SIMULATOR               -->
+    <!-- =================================================================== -->
+    <section id="tab-studio" class="tab-panel grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: MASSIVE GRANULAR CUSTOMIZER DECK (7 COLS) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- SECTION A: 16 DISTINCT LAUNCHER ARCHITECTURES -->
+        <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+            <div>
+              <h1 class="font-display font-extrabold text-lg sm:text-xl text-white">1. Launcher Architecture &amp; Style (16 Engines)</h1>
+              <p class="text-xs text-slate-400">Pick how your home screen organizes, scrolls, and feels.</p>
+            </div>
+            <span id="activeStyleBadge" class="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-[11px] font-mono text-indigo-200">
+              Material You
+            </span>
+          </div>
+
+          <div id="archGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <button type="button" data-arch="material-you" class="arch-pill active p-3 rounded-2xl border border-indigo-400/60 bg-indigo-500/20 text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-white">Material You</div>
+              <div class="text-[10px] text-indigo-200/80 mt-0.5">Pixel dynamic pills</div>
+            </button>
+            <button type="button" data-arch="basic-stock" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Basic Stock</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Clean classic grid</div>
+            </button>
+            <button type="button" data-arch="liquid-glass" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Liquid Glass</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">HyperOS frosted blur</div>
+            </button>
+            <button type="button" data-arch="niagara-list" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Niagara Stream</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">One-handed vertical</div>
+            </button>
+            <button type="button" data-arch="nothing-dot" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Nothing OS</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Dot-matrix &amp; mono</div>
+            </button>
+            <button type="button" data-arch="windows-tiles" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Metro Live Tiles</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Windows mosaic blocks</div>
+            </button>
+            <button type="button" data-arch="ios-library" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">iOS App Library</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Smart 2&times;2 folders</div>
+            </button>
+            <button type="button" data-arch="cyber-hud" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Cyber Deck HUD</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Telemetry + neon grid</div>
+            </button>
+            <button type="button" data-arch="minimal-text" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Minimalist Text</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Zero icons, pure focus</div>
+            </button>
+            <button type="button" data-arch="bento-cards" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Bento Widgets</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Asymmetric card grid</div>
+            </button>
+            <button type="button" data-arch="retro-98" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Retro 98 Desktop</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Classic Start bar &amp; bevels</div>
+            </button>
+            <button type="button" data-arch="terminal-cli" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Linux Terminal</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Bash prompt &amp; packages</div>
+            </button>
+            <button type="button" data-arch="one-ui" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">One UI Reach</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Bottom-weighted thumb zone</div>
+            </button>
+            <button type="button" data-arch="radial-wheel" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Radial Orbit</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Circular hub ring</div>
+            </button>
+            <button type="button" data-arch="eink-paper" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">E-Ink Paper</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">High-contrast matte ink</div>
+            </button>
+            <button type="button" data-arch="gaming-console" class="arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer">
+              <div class="text-xs font-bold text-slate-200">Console Deck</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Wide hero cards + shelf</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION B: 16 ICON SHAPES + 8 ICON PACK STYLES + 10 ICON FILTERS -->
+        <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-5">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div>
+              <h2 class="font-display font-extrabold text-base sm:text-lg text-white">2. Icon Geometry &amp; Theme Engine</h2>
+              <p class="text-xs text-slate-400">16 mask shapes &times; 8 icon rendering engines.</p>
+            </div>
+            <span id="shapeReadout" class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-[11px] font-mono text-amber-300">
+              Squircle &middot; Gradient
+            </span>
+          </div>
+
+          <!-- 16 Icon Shapes List -->
+          <div class="flex flex-col gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Icon Mask Shape (16 Options)</span>
+            <div id="iconShapeGrid" class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+              <button type="button" data-ishape="squircle" class="ishape-pill active p-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-indigo-400 mask-squircle block"></span>
+                <span class="text-[9px] font-semibold text-white">Squircle</span>
+              </button>
+              <button type="button" data-ishape="circle" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-circle block"></span>
+                <span class="text-[9px] text-slate-300">Circle</span>
+              </button>
+              <button type="button" data-ishape="rounded" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-rounded block"></span>
+                <span class="text-[9px] text-slate-300">Rounded</span>
+              </button>
+              <button type="button" data-ishape="sharp" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-sharp block"></span>
+                <span class="text-[9px] text-slate-300">Square</span>
+              </button>
+              <button type="button" data-ishape="teardrop" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-teardrop block"></span>
+                <span class="text-[9px] text-slate-300">Teardrop</span>
+              </button>
+              <button type="button" data-ishape="leaf" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-leaf block"></span>
+                <span class="text-[9px] text-slate-300">Leaf</span>
+              </button>
+              <button type="button" data-ishape="pebble" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-pebble block"></span>
+                <span class="text-[9px] text-slate-300">Pebble</span>
+              </button>
+              <button type="button" data-ishape="arch" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-arch block"></span>
+                <span class="text-[9px] text-slate-300">Arch</span>
+              </button>
+              <button type="button" data-ishape="hexagon" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-hexagon block"></span>
+                <span class="text-[9px] text-slate-300">Hexagon</span>
+              </button>
+              <button type="button" data-ishape="octagon" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-octagon block"></span>
+                <span class="text-[9px] text-slate-300">Octagon</span>
+              </button>
+              <button type="button" data-ishape="diamond" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-diamond block"></span>
+                <span class="text-[9px] text-slate-300">Diamond</span>
+              </button>
+              <button type="button" data-ishape="shield" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-shield block"></span>
+                <span class="text-[9px] text-slate-300">Shield</span>
+              </button>
+              <button type="button" data-ishape="star" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-star block"></span>
+                <span class="text-[9px] text-slate-300">Star</span>
+              </button>
+              <button type="button" data-ishape="flower" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-flower block"></span>
+                <span class="text-[9px] text-slate-300">Flower</span>
+              </button>
+              <button type="button" data-ishape="cut-corner" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-6 bg-slate-300 mask-cut-corner block"></span>
+                <span class="text-[9px] text-slate-300">Cyber Cut</span>
+              </button>
+              <button type="button" data-ishape="pill" class="ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer">
+                <span class="w-6 h-5 mt-0.5 bg-slate-300 mask-pill block"></span>
+                <span class="text-[9px] text-slate-300">Wide Pill</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 8 Icon Pack Rendering Styles -->
+          <div class="flex flex-col gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Icon Pack Shader / Style</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" data-ipack="gradient" class="ipack-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer">Vivid Gradient</button>
+              <button type="button" data-ipack="material-tint" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Material You Tint</button>
+              <button type="button" data-ipack="glass-frost" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Frosted Glass</button>
+              <button type="button" data-ipack="neon-outline" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Neon Wireframe</button>
+              <button type="button" data-ipack="amoled-mono" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">AMOLED Mono</button>
+              <button type="button" data-ipack="pastel-soft" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Pastel Clay</button>
+              <button type="button" data-ipack="glyph-only" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Floating Glyph</button>
+              <button type="button" data-ipack="duotone" class="ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Duotone Contrast</button>
+            </div>
+          </div>
+
+          <!-- 10 Icon Color Matrix & Post-Process Filters -->
+          <div class="flex flex-col gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Icon Color Filter &amp; Post-Processing (10 Filters)</span>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+              <button type="button" data-ifilter="none" class="ifilter-pill active py-1.5 px-2.5 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer">Normal</button>
+              <button type="button" data-ifilter="grayscale" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Grayscale</button>
+              <button type="button" data-ifilter="cyber-hue" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Cyber Shift</button>
+              <button type="button" data-ifilter="warm-sepia" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Warm Vintage</button>
+              <button type="button" data-ifilter="high-contrast" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">High Contrast</button>
+              <button type="button" data-ifilter="pastel-fade" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Pastel Matte</button>
+              <button type="button" data-ifilter="vivid-pop" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Hyper Vivid</button>
+              <button type="button" data-ifilter="invert-noir" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Invert Noir</button>
+              <button type="button" data-ifilter="emerald-tint" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Matrix Green</button>
+              <button type="button" data-ifilter="crimson-tint" class="ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Crimson Ops</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION C: LAUNCHER SETTINGS PAGE STYLES, CLOCK WIDGETS, DOCK & IDENTITY -->
+        <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-5">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="font-display font-extrabold text-base sm:text-lg text-white">3. Launcher Name, Settings UI, Widgets &amp; Dock</h2>
+            <span id="packagePreviewPill" class="text-[11px] font-mono text-emerald-400">com.cashhwocky.driftlauncher</span>
+          </div>
+
+          <!-- App Name (Shown on Android Home Screen!), GitHub User, Repo Name -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label for="appNameInput" class="text-[11px] font-semibold text-indigo-300">Launcher App Name (Home Screen Label)</label>
+              <input id="appNameInput" type="text" value="MyLauncher" placeholder="e.g. NovaFlow" class="bg-[#0a0b10] border border-indigo-400/40 focus:border-indigo-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs font-bold text-white" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="githubUserInput" class="text-[11px] font-semibold text-slate-400">Your GitHub Username</label>
+              <input id="githubUserInput" type="text" value="" placeholder="your-github-username" class="bg-[#0a0b10] border border-white/[0.1] focus:border-indigo-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs font-mono text-white" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="githubRepoInput" class="text-[11px] font-semibold text-slate-400">Repository Name</label>
+              <input id="githubRepoInput" type="text" value="MyLauncher" placeholder="MyLauncher" class="bg-[#0a0b10] border border-white/[0.1] focus:border-indigo-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs font-mono text-white" />
+            </div>
+          </div>
+
+          <!-- Built-in Launcher Settings Page Style -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-300">In-App Launcher Settings Page Style (Tap ⚙️ inside phone preview to test!)</span>
+              <span id="settingsStyleBadge" class="text-[10px] font-mono text-amber-300">Material You Cards</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" data-settingsstyle="material-cards" class="settingsstyle-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer">Material You Cards</button>
+              <button type="button" data-settingsstyle="bottom-sheet" class="settingsstyle-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Glass Bottom Sheet</button>
+              <button type="button" data-settingsstyle="oled-minimal" class="settingsstyle-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">OLED Pure Black</button>
+              <button type="button" data-settingsstyle="cyber-console" class="settingsstyle-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Cyber Config HUD</button>
+            </div>
+          </div>
+
+          <!-- Clock Face Style & Dock Style -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] font-semibold text-slate-400">Clock &amp; At-a-Glance Widget</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" data-clockstyle="glass-card" class="clock-pill active py-1.5 px-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer">Glass Card</button>
+                <button type="button" data-clockstyle="pixel-glance" class="clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Pixel Glance</button>
+                <button type="button" data-clockstyle="stacked-big" class="clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Stacked Big</button>
+                <button type="button" data-clockstyle="analog-dial" class="clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Analog Dial</button>
+                <button type="button" data-clockstyle="flip-retro" class="clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Flip Clock</button>
+                <button type="button" data-clockstyle="hidden" class="clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Hidden</button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] font-semibold text-slate-400">Dock Architecture</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" data-dockstyle="floating-pill" class="dockstyle-pill active py-1.5 px-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer">Glass Pill</button>
+                <button type="button" data-dockstyle="full-bar" class="dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Full Bar</button>
+                <button type="button" data-dockstyle="transparent" class="dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Borderless</button>
+                <button type="button" data-dockstyle="double-row" class="dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">2-Row Dock</button>
+                <button type="button" data-dockstyle="search-integrated" class="dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Search+Dock</button>
+                <button type="button" data-dockstyle="hidden" class="dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">No Dock</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid Columns, Icon Size & Font Family -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex justify-between text-[11px]">
+                <span class="font-semibold text-slate-400">Grid Columns</span>
+                <span id="colsReadout" class="font-mono text-indigo-300 font-bold">4 cols</span>
+              </div>
+              <div class="grid grid-cols-4 gap-1">
+                <button type="button" data-cols="3" class="col-pill py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-mono text-slate-300 cursor-pointer">3</button>
+                <button type="button" data-cols="4" class="col-pill active py-1.5 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-mono font-bold text-white cursor-pointer">4</button>
+                <button type="button" data-cols="5" class="col-pill py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-mono text-slate-300 cursor-pointer">5</button>
+                <button type="button" data-cols="6" class="col-pill py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-mono text-slate-300 cursor-pointer">6</button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <div class="flex justify-between text-[11px]">
+                <span class="font-semibold text-slate-400">Icon Scale</span>
+                <span id="iconScaleReadout" class="font-mono text-emerald-300 font-bold">48dp</span>
+              </div>
+              <input id="iconScaleRange" type="range" min="36" max="60" value="48" class="w-full mt-2" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] font-semibold text-slate-400">Launcher Typography</span>
+              <select id="fontFamilySelect" class="bg-[#0a0b10] border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
+                <option value="sans">Plus Jakarta (Clean)</option>
+                <option value="display">Syne (Editorial Bold)</option>
+                <option value="mono">JetBrains Mono (Code)</option>
+                <option value="cyber">Orbitron (Sci-Fi HUD)</option>
+                <option value="editorial">Playfair (Luxury Serif)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 10 Wallpaper Shaders & Accent Color -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400">Wallpaper Shader &amp; Accent Color</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-slate-400">Accent:</span>
+                <input id="accentColorPicker" type="color" value="#6366f1" class="w-7 h-7 rounded-full bg-transparent border-0 cursor-pointer" />
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" data-wall="indigo-mesh" class="wall-pill active px-3 py-1.5 rounded-full border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-semibold text-white cursor-pointer">Indigo Mesh</button>
+              <button type="button" data-wall="amoled" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Pure AMOLED</button>
+              <button type="button" data-wall="dotmatrix" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Dot Matrix</button>
+              <button type="button" data-wall="emerald-aurora" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Emerald Aurora</button>
+              <button type="button" data-wall="sunset-peach" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Sunset Peach</button>
+              <button type="button" data-wall="cyber-grid" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Cyber Grid</button>
+              <button type="button" data-wall="sakura-silk" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Sakura Silk</button>
+              <button type="button" data-wall="ocean-abyss" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Ocean Abyss</button>
+              <button type="button" data-wall="retro-teal" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Retro 98 Teal</button>
+              <button type="button" data-wall="gold-obsidian" class="wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer">Gold Obsidian</button>
+            </div>
+          </div>
+
+          <!-- Extra Feature Switches -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <label class="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] cursor-pointer">
+              <span class="text-xs font-medium text-slate-200">Search Bar</span>
+              <input id="toggleSearch" type="checkbox" checked class="accent-indigo-500 w-4 h-4 rounded" />
+            </label>
+            <label class="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] cursor-pointer">
+              <span class="text-xs font-medium text-slate-200">App Labels</span>
+              <input id="toggleLabels" type="checkbox" checked class="accent-indigo-500 w-4 h-4 rounded" />
+            </label>
+            <label class="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] cursor-pointer">
+              <span class="text-xs font-medium text-slate-200">Unread Dots</span>
+              <input id="toggleBadges" type="checkbox" checked class="accent-indigo-500 w-4 h-4 rounded" />
+            </label>
+            <label class="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] cursor-pointer">
+              <span class="text-xs font-medium text-slate-200">Drawer Tabs</span>
+              <input id="toggleCategories" type="checkbox" checked class="accent-indigo-500 w-4 h-4 rounded" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: LIVE INTERACTIVE ANDROID PHONE SIMULATOR (5 COLS) -->
+      <div class="lg:col-span-5 flex flex-col items-center gap-4 lg:sticky lg:top-20">
+        <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 w-full flex flex-col items-center gap-4">
+          <div class="w-full flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-bold text-white">Interactive Android Preview</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button
+                id="toggleSettingsSimBtn"
+                type="button"
+                class="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-[11px] font-semibold text-amber-200 transition cursor-pointer"
+                title="Preview the built-in Launcher Settings screen"
+              >
+                ⚙️ Settings
+              </button>
+              <button
+                id="toggleDrawerSimBtn"
+                type="button"
+                class="px-3 py-1 rounded-full bg-white/[0.07] hover:bg-white/[0.14] border border-white/[0.1] text-[11px] font-semibold text-indigo-200 transition cursor-pointer"
+              >
+                Drawer &uarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- Realistic Android Phone Frame -->
+          <div class="phone-bezel w-[310px] sm:w-[332px] h-[646px] rounded-[46px] p-[11px] relative select-none">
+            <!-- Hardware Power & Volume Buttons -->
+            <div class="w-[3px] h-12 bg-slate-600/70 rounded-r absolute -right-[3px] top-28"></div>
+            <div class="w-[3px] h-20 bg-slate-600/70 rounded-r absolute -right-[3px] top-44"></div>
+
+            <!-- Phone Display Screen -->
+            <div
+              id="phoneScreen"
+              class="w-full h-full rounded-[36px] overflow-hidden relative flex flex-col justify-between transition-all duration-300"
+              style="background: radial-gradient(circle at 25% 15%, #312e81 0%, #0f172a 55%, #05060a 100%);"
+            >
+              <!-- Android Status Bar + Punch-Hole Camera -->
+              <div class="px-5 pt-2.5 pb-1 flex items-center justify-between text-[11px] font-semibold text-white/90 z-20">
+                <span id="phoneStatusClock">11:00</span>
+                <div class="w-3.5 h-3.5 rounded-full bg-black ring-1 ring-white/15"></div>
+                <div class="flex items-center gap-1.5 text-[10px] font-mono">
+                  <span>5G</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              <!-- HOME SCREEN VIEW -->
+              <div id="phoneHomeView" class="flex-1 px-4 pt-2.5 pb-3 flex flex-col justify-between overflow-hidden transition-all duration-300">
+
+                <!-- Dynamic Clock / At-a-Glance Widget Container -->
+                <div id="phoneClockSlot" class="transition-all"></div>
+
+                <!-- Dynamic Main Home Content (Adapts to Material You, Niagara, Metro Tiles, iOS Folders, Terminal, etc.) -->
+                <div id="phoneHomeMain" class="flex-1 my-2 overflow-y-auto flex flex-col justify-center"></div>
+
+                <!-- Bottom Search Pill + Configurable Dock -->
+                <div id="phoneBottomArea" class="flex flex-col gap-2">
+                  <button
+                    id="phoneSearchBarBtn"
+                    type="button"
+                    class="w-full h-9 px-3.5 rounded-full border border-white/15 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-200 transition cursor-pointer"
+                    style="background: rgba(15, 18, 28, 0.6);"
+                  >
+                    <span class="flex items-center gap-2 truncate">
+                      <svg class="w-3.5 h-3.5 shrink-0" id="phoneSearchIcon" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7" />
+                        <path stroke-linecap="round" d="M20 20l-3.5-3.5" />
+                      </svg>
+                      <span id="phoneSearchText" class="truncate">Search DriftLauncher...</span>
+                    </span>
+                    <span class="text-[9px] font-mono text-slate-400">TAP</span>
+                  </button>
+
+                  <!-- Configurable Dock Container -->
+                  <div id="phoneDockSlot"></div>
+
+                  <!-- Gesture Pill Handle -->
+                  <div id="phoneGestureHandle" class="w-full flex flex-col items-center pt-0.5 cursor-pointer" title="Click to open App Drawer">
+                    <div class="w-24 h-1 rounded-full bg-white/40"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SLIDE-UP APP DRAWER VIEW -->
+              <div
+                id="phoneDrawerView"
+                class="hidden absolute inset-x-0 bottom-0 top-8 bg-[#0b0d14]/95 backdrop-blur-2xl rounded-t-[30px] border-t border-white/15 px-4 pt-3 pb-4 flex flex-col gap-3 z-30"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">App Drawer</span>
+                  <button id="closeDrawerSimBtn" type="button" class="px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-slate-200 cursor-pointer">
+                    Close &darr;
+                  </button>
+                </div>
+
+                <input
+                  id="drawerFilterInput"
+                  type="text"
+                  placeholder="Filter installed apps..."
+                  class="w-full bg-white/[0.07] border border-white/10 rounded-full px-3.5 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none"
+                />
+
+                <!-- Category Filter Pills -->
+                <div id="drawerCategoryBar" class="flex items-center gap-1 overflow-x-auto pb-0.5">
+                  <button type="button" data-cat="All" class="dcat-pill active px-2.5 py-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white cursor-pointer">All</button>
+                  <button type="button" data-cat="Social" class="dcat-pill px-2.5 py-1 rounded-full bg-white/[0.07] text-[10px] text-slate-300 cursor-pointer">Social</button>
+                  <button type="button" data-cat="Media" class="dcat-pill px-2.5 py-1 rounded-full bg-white/[0.07] text-[10px] text-slate-300 cursor-pointer">Media</button>
+                  <button type="button" data-cat="Tools" class="dcat-pill px-2.5 py-1 rounded-full bg-white/[0.07] text-[10px] text-slate-300 cursor-pointer">Tools</button>
+                </div>
+
+                <!-- Drawer Apps Grid -->
+                <div id="phoneDrawerGrid" class="flex-1 grid grid-cols-4 gap-y-3 gap-x-2 overflow-y-auto content-start pr-0.5"></div>
+              </div>
+
+              <!-- IN-APP LAUNCHER SETTINGS OVERLAY VIEW -->
+              <div
+                id="phoneSettingsView"
+                class="hidden absolute inset-x-0 bottom-0 top-8 bg-[#0b0d14]/96 backdrop-blur-2xl rounded-t-[30px] border-t border-white/15 px-4 pt-3.5 pb-4 flex flex-col gap-3 z-30 overflow-y-auto"
+              >
+                <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <div>
+                    <div id="simSettingsHeaderTitle" class="text-xs font-extrabold text-white">DriftLauncher Settings</div>
+                    <div id="simSettingsStyleTag" class="text-[10px] font-mono text-indigo-300">Material You Cards</div>
+                  </div>
+                  <button id="closeSettingsSimBtn" type="button" class="px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-slate-200 cursor-pointer">
+                    Done
+                  </button>
+                </div>
+                <div id="phoneSettingsBody" class="flex flex-col gap-2 text-xs"></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Home Screen App Icon Preview Badge right below phone -->
+          <div class="w-full max-w-[332px] px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div id="miniHomeIconPreview" class="w-10 h-10 rounded-xl overflow-hidden shadow-md shrink-0"></div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wider text-slate-400">Android App Drawer Icon &amp; Name</div>
+                <div id="miniHomeIconName" class="text-xs font-bold text-white">DriftLauncher</div>
+              </div>
+            </div>
+            <button type="button" data-jump-tab="icons" class="jump-tab-btn px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-[10px] font-bold text-indigo-200 cursor-pointer">
+              Edit Icon &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PROGRAMMATIC LOGO, CUSTOM UPLOAD & APP NAME STUDIO           -->
+    <!-- =================================================================== -->
+    <section id="tab-icons" class="tab-panel hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Left Icon Controls (6 cols) -->
+      <div class="lg:col-span-6 glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-5">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+            Custom App Icon &amp; Home Screen Name &middot; Zero Watermarks
+          </span>
+          <h2 class="font-display font-extrabold text-xl text-white mt-2">Launcher App Icon &amp; Home Screen Name</h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Customize the exact icon and name that appear on your Android phone when installed. Compiles directly into <code>res/mipmap-anydpi-v26/ic_launcher.xml</code> and <code>strings.xml</code>.
+          </p>
+        </div>
+
+        <!-- Custom Launcher Name Sync Box -->
+        <div class="p-3.5 rounded-2xl bg-[#0a0b10] border border-white/[0.09] flex flex-col gap-1.5">
+          <label for="iconTabAppNameInput" class="text-[11px] font-bold text-indigo-300">Home Screen App Name (What appears under your launcher icon)</label>
+          <input id="iconTabAppNameInput" type="text" value="DriftLauncher" class="bg-white/[0.05] border border-white/10 focus:border-indigo-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm font-bold text-white" />
+        </div>
+
+        <!-- Icon Shape & Center Glyph -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-400">Adaptive Mask Shape</span>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" data-lshape="squircle" class="lshape-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer">Squircle</button>
+              <button type="button" data-lshape="circle" class="lshape-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Circle</button>
+              <button type="button" data-lshape="rounded" class="lshape-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Rounded</button>
+              <button type="button" data-lshape="hex" class="lshape-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Hexagon</button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-400">Center Vector Glyph (8 Presets)</span>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" data-glyph="bento" class="glyph-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer">Bento Grid</button>
+              <button type="button" data-glyph="cat" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🐾 Meow Cat</button>
+              <button type="button" data-glyph="orbit" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Orbit Ring</button>
+              <button type="button" data-glyph="bolt" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">Flash Bolt</button>
+              <button type="button" data-glyph="crown" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">👑 King Crown</button>
+              <button type="button" data-glyph="flame" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🔥 Cyber Flame</button>
+              <button type="button" data-glyph="wave" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🎵 Audio Wave</button>
+              <button type="button" data-glyph="monogram" class="glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🔤 Initial Letter</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gradient Colors -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="flex flex-col gap-1">
+            <label for="iconBgStart" class="text-[11px] text-slate-400">Backdrop Start</label>
+            <input id="iconBgStart" type="color" value="#1e1b4b" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="iconBgEnd" class="text-[11px] text-slate-400">Backdrop End</label>
+            <input id="iconBgEnd" type="color" value="#090a0f" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="iconFgColor" class="text-[11px] text-slate-400">Glyph Accent</label>
+            <input id="iconFgColor" type="color" value="#34d399" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Export Buttons for Logo Coder -->
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button id="downloadLogoSvgBtn" type="button" class="h-10 px-4 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/10 text-xs font-bold text-white transition cursor-pointer">
+            Download icon.svg
+          </button>
+          <button id="downloadVectorXmlBtn" type="button" class="h-10 px-4 rounded-full bg-indigo-500 hover:bg-indigo-400 text-xs font-bold text-white transition cursor-pointer">
+            Download ic_launcher_foreground.xml
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Multi-Density Adaptive Preview + Home Screen Mockup + Live XML (6 cols) -->
+      <div class="lg:col-span-6 glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-4">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Android Home Screen Icon &amp; Adaptive Render</span>
+
+        <div class="grid grid-cols-3 gap-3 p-5 rounded-3xl bg-[#0a0b10] border border-white/[0.07] items-center justify-items-center">
+          <div class="flex flex-col items-center gap-2">
+            <div id="iconPreviewAdaptive" class="w-20 h-20 shadow-2xl"></div>
+            <span id="iconPreviewHomeLabel" class="text-xs font-bold text-white truncate max-w-[100px]">DriftLauncher</span>
+            <span class="text-[9px] font-mono text-slate-400">Home Screen</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div id="iconPreviewCircle" class="w-16 h-16 rounded-full overflow-hidden shadow-xl ring-1 ring-white/15"></div>
+            <span class="text-[10px] font-mono text-slate-400 mt-3">Circle Mask</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div id="iconPreviewMono" class="w-16 h-16 rounded-2xl overflow-hidden shadow-xl grayscale contrast-125 ring-1 ring-white/15"></div>
+            <span class="text-[10px] font-mono text-slate-400 mt-3">Android 13+ Mono</span>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-[#07080c] border border-white/[0.08] p-3.5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-mono text-amber-300">res/drawable/ic_launcher_foreground.xml</span>
+            <span class="text-[10px] text-emerald-400">Bundled automatically in .ZIP</span>
+          </div>
+          <pre id="vectorXmlPreview" class="text-[11px] font-mono text-slate-300 overflow-x-auto max-h-[210px] leading-relaxed"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- NEW TAB: PROCEDURAL WALLPAPER FORGE & CUSTOM IMAGE UPLOADER         -->
+    <!-- =================================================================== -->
+    <section id="tab-wallpapers" class="tab-panel hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div class="lg:col-span-6 glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-5">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+            Zero-API-Key Procedural Shader &amp; Image Uploader
+          </span>
+          <h2 class="font-display font-extrabold text-xl text-white mt-2">Custom Wallpaper Generator &amp; Uploader</h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Generate crisp 1080&times;2400 Android wallpapers mathematically in your browser—or upload your own photo/art. Automatically applies to your phone preview and bundles inside your APK's <code>res/drawable/</code> folder!
+          </p>
+        </div>
+
+        <!-- Procedural Wallpaper Generator Controls -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <button type="button" data-wgen="aurora-waves" class="wgen-pill active py-2.5 px-3 rounded-2xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer">🌌 Aurora Waves</button>
+          <button type="button" data-wgen="cyber-orbs" class="wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🔮 Neon Orbs</button>
+          <button type="button" data-wgen="topographic" class="wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🗺️ Topo Contours</button>
+          <button type="button" data-wgen="pixel-stars" class="wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">✨ Starfield</button>
+          <button type="button" data-wgen="sunset-dunes" class="wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">🏜️ Sunset Dunes</button>
+          <button type="button" data-wgen="amoled-prism" class="wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer">💎 AMOLED Prism</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="flex flex-col gap-1">
+            <label for="wallColor1" class="text-[11px] text-slate-400">Primary Glow</label>
+            <input id="wallColor1" type="color" value="#6366f1" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="wallColor2" class="text-[11px] text-slate-400">Secondary Glow</label>
+            <input id="wallColor2" type="color" value="#10b981" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="wallBaseColor" class="text-[11px] text-slate-400">Base Backdrop</label>
+            <input id="wallBaseColor" type="color" value="#07080f" class="w-full h-9 rounded-xl bg-[#0a0b10] border border-white/10 cursor-pointer" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="regenWallpaperBtn" type="button" class="h-10 px-4 rounded-full bg-indigo-500 hover:bg-indigo-400 text-xs font-bold text-white transition cursor-pointer">
+            🎲 Generate New Variation
+          </button>
+          <label class="h-10 px-4 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/10 text-xs font-bold text-white transition flex items-center gap-2 cursor-pointer">
+            <span>📁 Upload Custom Image</span>
+            <input id="uploadWallpaperInput" type="file" accept="image/*" class="hidden" />
+          </label>
+          <button id="downloadWallpaperPngBtn" type="button" class="h-10 px-4 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-xs font-bold text-emerald-200 transition cursor-pointer">
+            Download Wallpaper .PNG
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-6 glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col items-center gap-3">
+        <div class="w-full flex items-center justify-between">
+          <span class="text-xs font-bold text-white">Generated Wallpaper Preview (Synced to Phone &amp; APK)</span>
+          <span class="text-[10px] font-mono text-emerald-400">res/drawable/launcher_wallpaper.png</span>
+        </div>
+        <canvas id="wallpaperGenCanvas" width="540" height="1200" class="w-[220px] h-[460px] rounded-[28px] border border-white/15 shadow-2xl object-cover"></canvas>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: BEGINNER-FRIENDLY STEP-BY-STEP GITHUB ACTIONS APK GUIDE      -->
+    <!-- =================================================================== -->
+    <section id="tab-guide" class="tab-panel hidden flex-col gap-5">
+      <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-7 flex flex-col gap-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+          <div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[11px] font-bold text-emerald-300">
+              Universal Guide &middot; Works for Any GitHub User &middot; 100% Free Cloud APK Build
+            </span>
+            <h2 class="font-display font-extrabold text-xl sm:text-2xl text-white mt-2">
+              How to Turn <span id="guideAppNameTitle" class="text-indigo-400">MyLauncher</span> Into a Real Android APK
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Enter your GitHub details below—every link and terminal command updates automatically so you can copy, paste, and compile your APK with zero errors.
+            </p>
+          </div>
+          <button id="downloadZipGuideBtn" type="button" class="h-11 px-6 rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 hover:from-indigo-400 hover:to-emerald-400 text-white font-extrabold text-xs shadow-lg cursor-pointer">
+            1. Download Project .ZIP Now
+          </button>
+        </div>
+
+        <!-- LIVE GITHUB & LAUNCHER CONFIGURATOR FOR LINKS + GIT PUSH -->
+        <div class="p-4 sm:p-5 rounded-3xl bg-[#0a0b10] border border-indigo-400/30 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-indigo-300">Step 0: Enter Your GitHub Info (Auto-Updates All Links &amp; Commands)</div>
+              <p class="text-[11px] text-slate-400">Required so Git knows who is pushing the code and generates your exact repository links.</p>
+            </div>
+            <span id="guideLivePkgBadge" class="text-[11px] font-mono text-emerald-400">com.yourname.mylauncher</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="flex flex-col gap-1">
+              <label for="guideGithubUserInput" class="text-[11px] font-semibold text-slate-300">GitHub Username</label>
+              <input id="guideGithubUserInput" type="text" placeholder="e.g. alexdev" class="bg-white/[0.05] border border-white/15 focus:border-indigo-400 focus:outline-none rounded-xl px-3 py-2 text-xs font-mono text-white" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="guideGithubEmailInput" class="text-[11px] font-semibold text-slate-300">GitHub Account Email</label>
+              <input id="guideGithubEmailInput" type="email" placeholder="e.g. you@example.com" class="bg-white/[0.05] border border-white/15 focus:border-indigo-400 focus:outline-none rounded-xl px-3 py-2 text-xs font-mono text-white" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="guideLauncherNameInput" class="text-[11px] font-semibold text-slate-300">Launcher App Name</label>
+              <input id="guideLauncherNameInput" type="text" value="MyLauncher" placeholder="e.g. MyLauncher" class="bg-white/[0.05] border border-white/15 focus:border-indigo-400 focus:outline-none rounded-xl px-3 py-2 text-xs font-bold text-white" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="guideRepoNameInput" class="text-[11px] font-semibold text-slate-300">GitHub Repo Name</label>
+              <input id="guideRepoNameInput" type="text" value="MyLauncher" placeholder="e.g. MyLauncher" class="bg-white/[0.05] border border-white/15 focus:border-indigo-400 focus:outline-none rounded-xl px-3 py-2 text-xs font-mono text-white" />
+            </div>
+          </div>
+
+          <!-- Dynamic Generated Direct Links Bar -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <a id="dynamicCreateRepoLink" href="https://github.com/new?name=MyLauncher" target="_blank" rel="noopener" class="p-3 rounded-2xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/35 flex flex-col gap-0.5 transition">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300">Direct Link 1 &rarr;</span>
+              <span class="text-xs font-bold text-white truncate">Create Repo: <span id="linkCreateRepoLabel">MyLauncher</span></span>
+            </a>
+            <a id="dynamicRepoHomeLink" href="https://github.com/your-username/MyLauncher" target="_blank" rel="noopener" class="p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/15 flex flex-col gap-0.5 transition">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Direct Link 2 &rarr;</span>
+              <span class="text-xs font-mono text-emerald-300 truncate" id="linkRepoHomeText">github.com/your-username/MyLauncher</span>
+            </a>
+            <a id="dynamicActionsLink" href="https://github.com/your-username/MyLauncher/actions" target="_blank" rel="noopener" class="p-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/35 flex flex-col gap-0.5 transition">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Direct Link 3 (APK Download) &rarr;</span>
+              <span class="text-xs font-mono text-white truncate" id="linkActionsText">.../MyLauncher/actions</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Requirements Checklist Banner -->
+        <div class="p-4 rounded-3xl bg-white/[0.03] border border-white/[0.08] flex flex-col gap-2">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-300">Requirements Checklist</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-slate-200">
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/10 flex items-center gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Free GitHub Account</strong> (<a href="https://github.com/signup" target="_blank" rel="noopener" class="underline text-indigo-300">Sign up free</a>)</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/10 flex items-center gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Git Installed</strong> (Pre-installed on Linux/Mac; <a href="https://git-scm.com/download/win" target="_blank" rel="noopener" class="underline text-indigo-300">Git for Windows</a>)</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/10 flex items-center gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Any Android Phone</strong> (Android 8.0 &ndash; 16)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1 & Step 2 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-5 rounded-3xl bg-white/[0.03] border border-white/[0.08] flex flex-col gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-full bg-indigo-500 text-white font-bold text-xs flex items-center justify-center">1</span>
+              <h3 class="font-bold text-sm text-white">Download Your Custom Launcher .ZIP</h3>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Click <strong>Export Android .ZIP</strong> at the top of the screen to save <code id="guideZipFilename" class="text-indigo-300 font-mono">MyLauncher-android.zip</code> into your <strong>Downloads</strong> folder.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-3xl bg-white/[0.03] border border-white/[0.08] flex flex-col gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-full bg-indigo-500 text-white font-bold text-xs flex items-center justify-center">2</span>
+              <h3 class="font-bold text-sm text-white">Create Your Empty GitHub Repository</h3>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Click <a id="step2CreateRepoLink" href="https://github.com/new?name=MyLauncher" target="_blank" rel="noopener" class="text-emerald-400 underline font-semibold">Create <span id="guideRepoSpan">MyLauncher</span> on GitHub</a> (it pre-fills the repo name for you!). Keep it Public or Private, do <strong>not</strong> add a README, and click <strong>Create repository</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3: OS-SPECIFIC TERMINAL COMMANDS (LINUX/MAC vs WINDOWS) + NO-TERMINAL OPTION -->
+        <div class="p-5 rounded-3xl bg-white/[0.03] border border-white/[0.09] flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center">3</span>
+              <div>
+                <h3 class="font-bold text-sm text-white">Push Your Launcher to GitHub (Choose Your OS)</h3>
+                <p class="text-[11px] text-slate-400">Includes <code>git config</code> username &amp; email setup so GitHub accepts your push immediately.</p>
+              </div>
+            </div>
+
+            <!-- OS Selector Pills -->
+            <div class="flex items-center gap-1.5 bg-[#0a0b10] p-1 rounded-full border border-white/10">
+              <button type="button" data-os="linux" class="os-guide-pill active px-3.5 py-1.5 rounded-full bg-indigo-500 text-xs font-bold text-white cursor-pointer">
+                🐧 Linux / macOS Terminal
+              </button>
+              <button type="button" data-os="windows" class="os-guide-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
+                🪟 Windows PowerShell
+              </button>
+              <button type="button" data-os="browser" class="os-guide-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
+                🌐 No-Terminal Drag &amp; Drop
+              </button>
+            </div>
+          </div>
+
+          <!-- Linux / macOS Terminal Panel -->
+          <div id="osPanel-linux" class="os-guide-panel flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-300">Open your <strong>Terminal</strong> (<code>Ctrl+Alt+T</code> on Ubuntu/Pop!_OS) and paste these commands:</span>
+              <button id="copyLinuxCommandsBtn" type="button" class="px-3.5 py-1 rounded-full bg-indigo-500 hover:bg-indigo-400 text-[11px] font-bold text-white cursor-pointer">
+                Copy Linux / Mac Commands
+              </button>
+            </div>
+            <pre id="guideLinuxPre" class="p-3.5 rounded-2xl bg-[#07080c] border border-white/[0.08] text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed"></pre>
+            <p class="text-[11px] text-slate-400">
+              <strong>Note on GitHub Login:</strong> When Git asks for your password in the terminal, paste a GitHub <strong>Personal Access Token (classic)</strong> with <code>repo</code> + <code>workflow</code> permissions (<a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=bitCREATE" target="_blank" rel="noopener" class="underline text-indigo-300">Generate token in 1 click here</a>).
+            </p>
+          </div>
+
+          <!-- Windows PowerShell Panel -->
+          <div id="osPanel-windows" class="os-guide-panel hidden flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-300">Press <strong>Win + X</strong> &rarr; click <strong>Terminal / PowerShell</strong> and paste these commands:</span>
+              <button id="copyWindowsCommandsBtn" type="button" class="px-3.5 py-1 rounded-full bg-indigo-500 hover:bg-indigo-400 text-[11px] font-bold text-white cursor-pointer">
+                Copy Windows Commands
+              </button>
+            </div>
+            <pre id="guideWindowsPre" class="p-3.5 rounded-2xl bg-[#07080c] border border-white/[0.08] text-xs font-mono text-sky-300 overflow-x-auto leading-relaxed"></pre>
+            <p class="text-[11px] text-slate-400">
+              <strong>Note on Windows Login:</strong> Git for Windows will automatically open a browser sign-in popup—just click <strong>Authorize git-ecosystem</strong> and it will push!
+            </p>
+          </div>
+
+          <!-- No-Terminal Browser Upload Panel -->
+          <div id="osPanel-browser" class="os-guide-panel hidden flex-col gap-2">
+            <div class="p-4 rounded-2xl bg-[#07080c] border border-white/[0.08] text-xs text-slate-300 leading-relaxed space-y-1.5">
+              <div><strong>1.</strong> Unzip <code id="browserGuideZipName" class="text-indigo-300">MyLauncher-android.zip</code> on your computer.</div>
+              <div><strong>2.</strong> Open your new repository at <a id="browserGuideRepoLink" href="https://github.com/your-username/MyLauncher" target="_blank" rel="noopener" class="text-emerald-400 underline font-mono">https://github.com/your-username/MyLauncher</a> and click <strong>uploading an existing file</strong>.</div>
+              <div><strong>3.</strong> Show hidden files (<code>Ctrl+H</code> on Linux, <code>Cmd+Shift+.</code> on Mac, or <em>View &rarr; Show &rarr; Hidden items</em> on Windows) so you include the <code>.github</code> folder.</div>
+              <div><strong>4.</strong> Drag all extracted files into GitHub and click <strong>Commit changes</strong>.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Download & Install APK -->
+        <div class="p-5 rounded-3xl bg-white/[0.03] border border-white/[0.08] flex flex-col gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center">4</span>
+            <h3 class="font-bold text-sm text-white">Download Your Compiled .APK &amp; Set as Default Home Screen</h3>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            1. Open your Actions page: <a id="guideActionsUrl" href="https://github.com/your-username/MyLauncher/actions" target="_blank" rel="noopener" class="text-indigo-300 underline font-mono">https://github.com/your-username/MyLauncher/actions</a> and click the <strong>Build Android APK</strong> workflow run.<br/>
+            2. Wait ~2 minutes for the green checkmark, scroll down to <strong>Artifacts</strong>, and click <code id="guideArtifactName" class="text-emerald-300 font-mono">MyLauncher-debug-apk</code> to download your <code>.apk</code>.<br/>
+            3. Install the <code>.apk</code> on your Android phone (tap <em>Allow from this source</em> if prompted), then go to Android <strong>Settings &rarr; Apps &rarr; Default apps &rarr; Home app</strong> and select <strong id="guideFinalAppName" class="text-white">MyLauncher</strong>!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: FULL KOTLIN, MANIFEST, GRADLE & GITHUB ACTIONS CODE VIEWER   -->
+    <!-- =================================================================== -->
+    <section id="tab-code" class="tab-panel hidden flex-col gap-5">
+      <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button type="button" data-file="MainActivity.kt" class="code-file-pill active px-3.5 py-1.5 rounded-full bg-indigo-500/25 border border-indigo-400/50 text-xs font-mono font-bold text-white cursor-pointer">MainActivity.kt</button>
+            <button type="button" data-file="AndroidManifest.xml" class="code-file-pill px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 cursor-pointer">AndroidManifest.xml</button>
+            <button type="button" data-file="app/build.gradle.kts" class="code-file-pill px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 cursor-pointer">app/build.gradle.kts</button>
+            <button type="button" data-file=".github/workflows/build-apk.yml" class="code-file-pill px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 cursor-pointer">build-apk.yml</button>
+            <button type="button" data-file="ic_launcher_foreground.xml" class="code-file-pill px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 cursor-pointer">ic_launcher_foreground.xml</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="activeCodeLineCount" class="text-[11px] font-mono text-slate-400">0 lines</span>
+            <button id="copyCurrentCodeBtn" type="button" class="px-3.5 py-1.5 rounded-full bg-indigo-500 hover:bg-indigo-400 text-xs font-bold text-white cursor-pointer">
+              Copy File
+            </button>
+          </div>
+        </div>
+        <div class="text-[11px] font-mono text-emerald-400" id="activeCodeFilePath">app/src/main/java/com/cashhwocky/driftlauncher/MainActivity.kt</div>
+        <pre id="codeViewerPre" class="p-4 rounded-2xl bg-[#07080c] border border-white/[0.08] text-xs font-mono text-slate-200 overflow-x-auto max-h-[520px] leading-relaxed"></pre>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 6: EXPERIMENTAL & EDGE-CASE ANDROID LAUNCHER LABS               -->
+    <!-- =================================================================== -->
+    <section id="tab-labs" class="tab-panel hidden flex-col gap-5">
+      <div class="glass-card border border-white/[0.09] rounded-[30px] p-5 sm:p-6 flex flex-col gap-5">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+            Advanced Android System Hooks &amp; Experimental Capabilities
+          </span>
+          <h2 class="font-display font-extrabold text-xl text-white mt-2">Experimental Android Launcher Labs</h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Toggle extra Android system integrations. Enabled hooks automatically inject the required permissions, services, and Kotlin code into your compiled APK.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-start justify-between gap-3 cursor-pointer">
+            <div>
+              <div class="text-sm font-bold text-white">Android 12+ Window Behind Blur</div>
+              <p class="text-xs text-slate-400 mt-1">Uses <code>FLAG_BLUR_BEHIND</code> for real-time GPU wallpaper blur on Android 12–16.</p>
+            </div>
+            <input id="labWallpaperBlur" type="checkbox" checked class="lab-toggle accent-indigo-500 w-4 h-4 mt-1" />
+          </label>
+
+          <label class="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-start justify-between gap-3 cursor-pointer">
+            <div>
+              <div class="text-sm font-bold text-white">Notification Listener Unread Badges</div>
+              <p class="text-xs text-slate-400 mt-1">Binds <code>NotificationListenerService</code> to track live app badge counts.</p>
+            </div>
+            <input id="labNotifBadges" type="checkbox" checked class="lab-toggle accent-indigo-500 w-4 h-4 mt-1" />
+          </label>
+
+          <label class="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-start justify-between gap-3 cursor-pointer">
+            <div>
+              <div class="text-sm font-bold text-white">Accessibility Double-Tap Screen Lock</div>
+              <p class="text-xs text-slate-400 mt-1">Registers an <code>AccessibilityService</code> to lock the screen without breaking fingerprint unlock.</p>
+            </div>
+            <input id="labDoubleTapLock" type="checkbox" class="lab-toggle accent-indigo-500 w-4 h-4 mt-1" />
+          </label>
+
+          <label class="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-start justify-between gap-3 cursor-pointer">
+            <div>
+              <div class="text-sm font-bold text-white">Root / Shizuku Shell Helper</div>
+              <p class="text-xs text-slate-400 mt-1">Adds <code>su -c</code> shell execution hooks for rooted devices (requires Magisk/KernelSU).</p>
+            </div>
+            <input id="labRootHelper" type="checkbox" class="lab-toggle accent-indigo-500 w-4 h-4 mt-1" />
+          </label>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- STUDIO FOOTER                                                         -->
+  <!-- ===================================================================== -->
+  <footer class="w-full py-5 px-3 sm:px-6 mt-auto">
+    <div class="max-w-[1440px] mx-auto px-5 py-3 rounded-full bg-white/[0.03] border border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+      <span>bitCREATE &mdash; Universal Android Launcher Customizer &amp; Cloud APK Studio</span>
+      <span class="text-slate-300 font-medium">Zero API Keys &middot; <span class="text-emerald-400 font-semibold">100% Free GitHub Actions APK Builds</span></span>
+    </div>
+  </footer>
+
+  <script type="module">
+    // Casual source/inspection deterrents
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && ['u', 's'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    });
+
+    // =========================================================================
+    // SAMPLE INSTALLED APPS FOR LIVE PHONE SIMULATOR
+    // =========================================================================
+    const MOCK_APPS = [
+      { name: 'Phone', pkg: 'com.android.dialer', cat: 'Tools', color: '#10b981', badge: 2, glyph: 'M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z' },
+      { name: 'Messages', pkg: 'com.google.android.apps.messaging', cat: 'Social', color: '#3b82f6', badge: 5, glyph: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z' },
+      { name: 'Browser', pkg: 'com.android.chrome', cat: 'Tools', color: '#f59e0b', badge: 0, glyph: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 6a4 4 0 110 8 4 4 0 010-8z' },
+      { name: 'Camera', pkg: 'com.android.camera2', cat: 'Media', color: '#ec4899', badge: 0, glyph: 'M9 3L7.2 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.2L15 3H9zm3 15a5 5 0 110-10 5 5 0 010 10z' },
+      { name: 'Music', pkg: 'com.cashhwocky.alexlmp', cat: 'Media', color: '#8b5cf6', badge: 0, glyph: 'M12 3v10.55A4 4 0 1014 17V7h4V3h-6z' },
+      { name: 'Terminal', pkg: 'com.termux', cat: 'Tools', color: '#14b8a6', badge: 1, glyph: 'M4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm3 4l3 3-3 3m5 0h5' },
+      { name: 'Discord', pkg: 'com.discord', cat: 'Social', color: '#6366f1', badge: 9, glyph: 'M8 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM4 6c3-2 13-2 16 0l1 10c-3 2-6 2-9 2s-6 0-9-2L4 6z' },
+      { name: 'YouTube', pkg: 'com.google.android.youtube', cat: 'Media', color: '#ef4444', badge: 3, glyph: 'M10 8l6 4-6 4V8zM3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6z' },
+      { name: 'GitHub', pkg: 'com.github.android', cat: 'Tools', color: '#64748b', badge: 0, glyph: 'M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.56 9.56 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0012 2z' },
+      { name: 'Settings', pkg: 'com.android.settings', cat: 'Tools', color: '#0ea5e9', badge: 0, glyph: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.94 3a7.96 7.96 0 00-.68-1.64l1.42-1.42-2.12-2.12-1.42 1.42A7.96 7.96 0 0016.5 6.56V4.5h-3v2.06a7.96 7.96 0 00-1.64.68L10.44 5.82 8.32 7.94l1.42 1.42A7.96 7.96 0 009.06 11H7v3h2.06c.16.58.39 1.13.68 1.64l-1.42 1.42 2.12 2.12 1.42-1.42c.51.29 1.06.52 1.64.68V20.5h3v-2.06c.58-.16 1.13-.39 1.64-.68l1.42 1.42 2.12-2.12-1.42-1.42c.29-.51.52-1.06.68-1.64H23v-3h-2.06z' },
+      { name: 'Gallery', pkg: 'com.android.gallery3d', cat: 'Media', color: '#f97316', badge: 0, glyph: 'M4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm3 9l3.5-4.5 2.5 3 3.5-4.5L20 14H7z' },
+      { name: 'Telegram', pkg: 'org.telegram.messenger', cat: 'Social', color: '#38bdf8', badge: 4, glyph: 'M21 4L3 11l6 2 2 6 3-4 5 3 2-14z' }
+    ];
+
+    const ARCH_LABELS = {
+      'material-you': 'Material You',
+      'basic-stock': 'Basic Stock',
+      'liquid-glass': 'Liquid Glass',
+      'niagara-list': 'Niagara Stream',
+      'nothing-dot': 'Nothing OS',
+      'windows-tiles': 'Metro Live Tiles',
+      'ios-library': 'iOS App Library',
+      'cyber-hud': 'Cyber Deck HUD',
+      'minimal-text': 'Minimalist Text',
+      'bento-cards': 'Bento Widgets',
+      'retro-98': 'Retro 98 Desktop',
+      'terminal-cli': 'Linux Terminal',
+      'one-ui': 'One UI Reach',
+      'radial-wheel': 'Radial Orbit',
+      'eink-paper': 'E-Ink Paper',
+      'gaming-console': 'Console Deck'
+    };
+
+    const SETTINGS_STYLE_LABELS = {
+      'material-cards': 'Material You Cards',
+      'bottom-sheet': 'Glass Bottom Sheet',
+      'oled-minimal': 'OLED Pure Black',
+      'cyber-console': 'Cyber Config HUD'
+    };
+
+    // =========================================================================
+    // CENTRAL PRO LAUNCHER STATE
+    // =========================================================================
+    const state = {
+      appName: 'MyLauncher',
+      tagline: 'Adaptive Material You & Glass Home',
+      githubUser: '',
+      githubEmail: '',
+      githubRepo: 'MyLauncher',
+      archetype: 'material-you',
+      iconShape: 'squircle',
+      iconPack: 'gradient',
+      iconFilter: 'none',
+      settingsStyle: 'material-cards',
+      clockStyle: 'glass-card',
+      dockStyle: 'floating-pill',
+      cols: 4,
+      iconScale: 48,
+      fontFamily: 'sans',
+      wallpaper: 'indigo-mesh',
+      customWallpaperDataUrl: null,
+      wallGenPattern: 'aurora-waves',
+      wallColor1: '#6366f1',
+      wallColor2: '#10b981',
+      wallBaseColor: '#07080f',
+      glassOpacity: 22,
+      accentColor: '#6366f1',
+      showSearch: true,
+      showLabels: true,
+      showBadges: true,
+      showCategories: true,
+      logoShape: 'squircle',
+      logoGlyph: 'bento',
+      iconBgStart: '#1e1b4b',
+      iconBgEnd: '#090a0f',
+      iconFgColor: '#34d399',
+      activeCodeFile: 'MainActivity.kt',
+      drawerCategory: 'All',
+      drawerFilter: '',
+      labDoubleTapLock: false,
+      labWallpaperBlur: true,
+      labNotifBadges: true,
+      labRootHelper: false
+    };
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => banner.classList.add('hidden'), 3200);
+    }
+
+    // =========================================================================
+    // SYNC UI CONTROLS <-> STATE + SHUFFLE BUILD GENERATOR
+    // =========================================================================
+    function syncControlsFromState() {
+      document.getElementById('appNameInput').value = state.appName;
+      const iconTabName = document.getElementById('iconTabAppNameInput');
+      if (iconTabName) iconTabName.value = state.appName;
+      const guideLauncherInput = document.getElementById('guideLauncherNameInput');
+      if (guideLauncherInput) guideLauncherInput.value = state.appName;
+
+      document.getElementById('githubUserInput').value = state.githubUser;
+      const guideUserInput = document.getElementById('guideGithubUserInput');
+      if (guideUserInput) guideUserInput.value = state.githubUser;
+
+      const guideEmailInput = document.getElementById('guideGithubEmailInput');
+      if (guideEmailInput) guideEmailInput.value = state.githubEmail;
+
+      document.getElementById('githubRepoInput').value = state.githubRepo;
+      const guideRepoInput = document.getElementById('guideRepoNameInput');
+      if (guideRepoInput) guideRepoInput.value = state.githubRepo;
+
+      document.getElementById('colsReadout').textContent = `${state.cols} cols`;
+      document.getElementById('iconScaleRange').value = state.iconScale;
+      document.getElementById('iconScaleReadout').textContent = `${state.iconScale}dp`;
+      document.getElementById('fontFamilySelect').value = state.fontFamily;
+      document.getElementById('accentColorPicker').value = state.accentColor;
+
+      document.getElementById('activeStyleBadge').textContent = ARCH_LABELS[state.archetype] || 'Custom';
+      const safeShape = state.iconShape || 'squircle';
+      document.getElementById('shapeReadout').textContent = `${safeShape.charAt(0).toUpperCase() + safeShape.slice(1)} · ${state.iconPack}`;
+      const settingsBadge = document.getElementById('settingsStyleBadge');
+      if (settingsBadge) settingsBadge.textContent = SETTINGS_STYLE_LABELS[state.settingsStyle] || 'Material You Cards';
+
+      document.getElementById('toggleSearch').checked = state.showSearch;
+      document.getElementById('toggleLabels').checked = state.showLabels;
+      document.getElementById('toggleBadges').checked = state.showBadges;
+      document.getElementById('toggleCategories').checked = state.showCategories;
+
+      document.querySelectorAll('.arch-pill').forEach((p) => {
+        const active = p.getAttribute('data-arch') === state.archetype;
+        p.className = active
+          ? 'arch-pill active p-3 rounded-2xl border border-indigo-400/60 bg-indigo-500/20 text-left transition cursor-pointer'
+          : 'arch-pill p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-left transition cursor-pointer';
+      });
+
+      document.querySelectorAll('.ishape-pill').forEach((p) => {
+        const active = p.getAttribute('data-ishape') === state.iconShape;
+        p.className = active
+          ? 'ishape-pill active p-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 flex flex-col items-center gap-1.5 cursor-pointer'
+          : 'ishape-pill p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] flex flex-col items-center gap-1.5 cursor-pointer';
+        const shapePreview = p.querySelector('span:first-child');
+        if (shapePreview) {
+          shapePreview.style.backgroundColor = active ? state.accentColor : '';
+        }
+      });
+
+      document.querySelectorAll('.ipack-pill').forEach((p) => {
+        const active = p.getAttribute('data-ipack') === state.iconPack;
+        p.className = active
+          ? 'ipack-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer'
+          : 'ipack-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.ifilter-pill').forEach((p) => {
+        const active = p.getAttribute('data-ifilter') === state.iconFilter;
+        p.className = active
+          ? 'ifilter-pill active py-1.5 px-2.5 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer'
+          : 'ifilter-pill py-1.5 px-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.settingsstyle-pill').forEach((p) => {
+        const active = p.getAttribute('data-settingsstyle') === state.settingsStyle;
+        p.className = active
+          ? 'settingsstyle-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer'
+          : 'settingsstyle-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.clock-pill').forEach((p) => {
+        const active = p.getAttribute('data-clockstyle') === state.clockStyle;
+        p.className = active
+          ? 'clock-pill active py-1.5 px-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer'
+          : 'clock-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.dockstyle-pill').forEach((p) => {
+        const active = p.getAttribute('data-dockstyle') === state.dockStyle;
+        p.className = active
+          ? 'dockstyle-pill active py-1.5 px-2 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-bold text-white cursor-pointer'
+          : 'dockstyle-pill py-1.5 px-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.col-pill').forEach((p) => {
+        const active = parseInt(p.getAttribute('data-cols'), 10) === state.cols;
+        p.className = active
+          ? 'col-pill active py-1.5 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-mono font-bold text-white cursor-pointer'
+          : 'col-pill py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-mono text-slate-300 cursor-pointer';
+      });
+
+      document.querySelectorAll('.wall-pill').forEach((p) => {
+        const active = p.getAttribute('data-wall') === state.wallpaper;
+        p.className = active
+          ? 'wall-pill active px-3 py-1.5 rounded-full border border-indigo-400/60 bg-indigo-500/20 text-[11px] font-semibold text-white cursor-pointer'
+          : 'wall-pill px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] text-slate-300 cursor-pointer';
+      });
+    }
+
+    // Event Listeners for all Customizer Sections
+    function syncAppNameAcrossAllInputs(rawVal) {
+      const cleanName = rawVal.trim() || 'MyLauncher';
+      const prevRepoDefault = state.appName.replace(/[^a-zA-Z0-9-_]/g, '');
+      state.appName = cleanName;
+      if (!state.githubRepo || state.githubRepo === prevRepoDefault || state.githubRepo === 'MyLauncher') {
+        state.githubRepo = cleanName.replace(/[^a-zA-Z0-9-_]/g, '') || 'MyLauncher';
+      }
+      document.getElementById('appNameInput').value = state.appName;
+      const iconTabInput = document.getElementById('iconTabAppNameInput');
+      if (iconTabInput) iconTabInput.value = state.appName;
+      const guideLauncherInput = document.getElementById('guideLauncherNameInput');
+      if (guideLauncherInput) guideLauncherInput.value = state.appName;
+      document.getElementById('githubRepoInput').value = state.githubRepo;
+      const guideRepoInput = document.getElementById('guideRepoNameInput');
+      if (guideRepoInput) guideRepoInput.value = state.githubRepo;
+      refreshAllOutputs();
+    }
+
+    function syncGithubUserAcrossInputs(rawVal) {
+      state.githubUser = rawVal.trim();
+      document.getElementById('githubUserInput').value = state.githubUser;
+      const guideUserInput = document.getElementById('guideGithubUserInput');
+      if (guideUserInput) guideUserInput.value = state.githubUser;
+      refreshAllOutputs();
+    }
+
+    function syncGithubRepoAcrossInputs(rawVal) {
+      state.githubRepo = rawVal.trim().replace(/[^a-zA-Z0-9-_]/g, '') || 'MyLauncher';
+      document.getElementById('githubRepoInput').value = state.githubRepo;
+      const guideRepoInput = document.getElementById('guideRepoNameInput');
+      if (guideRepoInput) guideRepoInput.value = state.githubRepo;
+      refreshAllOutputs();
+    }
+
+    document.getElementById('appNameInput').addEventListener('input', (e) => syncAppNameAcrossAllInputs(e.target.value));
+    document.getElementById('iconTabAppNameInput').addEventListener('input', (e) => syncAppNameAcrossAllInputs(e.target.value));
+    document.getElementById('guideLauncherNameInput').addEventListener('input', (e) => syncAppNameAcrossAllInputs(e.target.value));
+
+    document.getElementById('githubUserInput').addEventListener('input', (e) => syncGithubUserAcrossInputs(e.target.value));
+    document.getElementById('guideGithubUserInput').addEventListener('input', (e) => syncGithubUserAcrossInputs(e.target.value));
+
+    document.getElementById('guideGithubEmailInput').addEventListener('input', (e) => {
+      state.githubEmail = e.target.value.trim();
+      renderDynamicGuide();
+    });
+
+    document.getElementById('githubRepoInput').addEventListener('input', (e) => syncGithubRepoAcrossInputs(e.target.value));
+    document.getElementById('guideRepoNameInput').addEventListener('input', (e) => syncGithubRepoAcrossInputs(e.target.value));
+
+    document.querySelectorAll('.ishape-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.iconShape = p.getAttribute('data-ishape');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.ipack-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.iconPack = p.getAttribute('data-ipack');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.ifilter-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.iconFilter = p.getAttribute('data-ifilter');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.settingsstyle-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.settingsStyle = p.getAttribute('data-settingsstyle');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.clock-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.clockStyle = p.getAttribute('data-clockstyle');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.dockstyle-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.dockStyle = p.getAttribute('data-dockstyle');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.col-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.cols = parseInt(p.getAttribute('data-cols'), 10);
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.getElementById('iconScaleRange').addEventListener('input', (e) => {
+      state.iconScale = parseInt(e.target.value, 10);
+      document.getElementById('iconScaleReadout').textContent = `${state.iconScale}dp`;
+      refreshAllOutputs();
+    });
+
+    document.getElementById('fontFamilySelect').addEventListener('change', (e) => {
+      state.fontFamily = e.target.value;
+      refreshAllOutputs();
+    });
+
+    document.querySelectorAll('.wall-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.wallpaper = p.getAttribute('data-wall');
+        state.customWallpaperDataUrl = null;
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    document.getElementById('accentColorPicker').addEventListener('input', (e) => {
+      state.accentColor = e.target.value;
+      state.iconFgColor = e.target.value;
+      syncControlsFromState();
+      refreshAllOutputs();
+    });
+
+    ['toggleSearch', 'toggleLabels', 'toggleBadges', 'toggleCategories'].forEach((id) => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        if (id === 'toggleSearch') state.showSearch = e.target.checked;
+        if (id === 'toggleLabels') state.showLabels = e.target.checked;
+        if (id === 'toggleBadges') state.showBadges = e.target.checked;
+        if (id === 'toggleCategories') state.showCategories = e.target.checked;
+        refreshAllOutputs();
+      });
+    });
+
+    document.getElementById('randomizeBuildBtn').addEventListener('click', () => {
+      const archKeys = Object.keys(ARCH_LABELS);
+      const shapes = ['squircle', 'circle', 'rounded', 'sharp', 'teardrop', 'leaf', 'pebble', 'arch', 'hexagon', 'octagon', 'diamond', 'shield', 'star', 'flower', 'cut-corner', 'pill'];
+      const packs = ['gradient', 'material-tint', 'glass-frost', 'neon-outline', 'amoled-mono', 'pastel-soft', 'glyph-only', 'duotone'];
+      const filters = ['none', 'none', 'cyber-hue', 'vivid-pop', 'pastel-fade', 'high-contrast'];
+      const sStyles = ['material-cards', 'bottom-sheet', 'oled-minimal', 'cyber-console'];
+      const clocks = ['glass-card', 'pixel-glance', 'stacked-big', 'analog-dial', 'flip-retro'];
+      const docks = ['floating-pill', 'full-bar', 'transparent', 'double-row', 'search-integrated'];
+      const walls = ['indigo-mesh', 'amoled', 'dotmatrix', 'emerald-aurora', 'sunset-peach', 'cyber-grid', 'sakura-silk', 'ocean-abyss', 'gold-obsidian'];
+      const accents = ['#6366f1', '#10b981', '#f472b6', '#f59e0b', '#38bdf8', '#a855f7', '#ef4444'];
+
+      state.archetype = archKeys[Math.floor(Math.random() * archKeys.length)];
+      state.iconShape = shapes[Math.floor(Math.random() * shapes.length)];
+      state.iconPack = packs[Math.floor(Math.random() * packs.length)];
+      state.iconFilter = filters[Math.floor(Math.random() * filters.length)];
+      state.settingsStyle = sStyles[Math.floor(Math.random() * sStyles.length)];
+      state.clockStyle = clocks[Math.floor(Math.random() * clocks.length)];
+      state.dockStyle = docks[Math.floor(Math.random() * docks.length)];
+      state.wallpaper = walls[Math.floor(Math.random() * walls.length)];
+      state.customWallpaperDataUrl = null;
+      state.accentColor = accents[Math.floor(Math.random() * accents.length)];
+      state.iconFgColor = state.accentColor;
+
+      syncControlsFromState();
+      refreshAllOutputs();
+      showToast(`Shuffled: ${ARCH_LABELS[state.archetype]} + ${state.iconShape} icons!`);
+    });
+
+    document.querySelectorAll('.lab-toggle').forEach((chk) => {
+      chk.addEventListener('change', () => {
+        state.labDoubleTapLock = document.getElementById('labDoubleTapLock').checked;
+        state.labWallpaperBlur = document.getElementById('labWallpaperBlur').checked;
+        state.labNotifBadges = document.getElementById('labNotifBadges').checked;
+        state.labRootHelper = document.getElementById('labRootHelper').checked;
+        refreshAllOutputs();
+        showToast('Experimental Kotlin & Manifest hooks updated.');
+      });
+    });
+
+    // =========================================================================
+    // HELPER: ICON RENDERER RESPECTING 16 SHAPES + 8 ICON PACKS + 10 FILTERS
+    // =========================================================================
+    function getIconFilterCss() {
+      const map = {
+        'none': 'none',
+        'grayscale': 'grayscale(100%) contrast(115%)',
+        'cyber-hue': 'hue-rotate(95deg) saturate(160%)',
+        'warm-sepia': 'sepia(80%) contrast(105%)',
+        'high-contrast': 'contrast(155%) saturate(130%)',
+        'pastel-fade': 'saturate(65%) brightness(115%)',
+        'vivid-pop': 'saturate(185%) contrast(112%)',
+        'invert-noir': 'invert(92%) hue-rotate(180deg)',
+        'emerald-tint': 'sepia(100%) hue-rotate(95deg) saturate(260%)',
+        'crimson-tint': 'sepia(100%) hue-rotate(320deg) saturate(280%)'
+      };
+      return map[state.iconFilter] || 'none';
+    }
+
+    function renderAppIconHtml(app, sizePx = state.iconScale) {
+      const maskClass = `mask-${state.iconShape || 'squircle'}`;
+      const filterCss = getIconFilterCss();
+      const badgeHtml = (state.showBadges && app.badge > 0)
+        ? `<span class="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center shadow z-10" style="background:${state.accentColor}">${app.badge}</span>`
+        : '';
+
+      let boxStyle = '';
+      let iconColor = '#ffffff';
+
+      switch (state.iconPack) {
+        case 'material-tint':
+          boxStyle = `background: ${state.accentColor}2E; border: 1px solid ${state.accentColor}66;`;
+          iconColor = state.accentColor;
+          break;
+        case 'glass-frost':
+          boxStyle = `background: rgba(255,255,255,0.14); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.28);`;
+          iconColor = '#ffffff';
+          break;
+        case 'neon-outline':
+          boxStyle = `background: rgba(5,6,10,0.85); border: 1.5px solid ${app.color}; box-shadow: 0 0 10px ${app.color}55;`;
+          iconColor = app.color;
+          break;
+        case 'amoled-mono':
+          boxStyle = `background: #121318; border: 1px solid rgba(255,255,255,0.18);`;
+          iconColor = '#f8fafc';
+          break;
+        case 'pastel-soft':
+          boxStyle = `background: ${app.color}44; border: 1px solid ${app.color}88;`;
+          iconColor = '#ffffff';
+          break;
+        case 'glyph-only':
+          boxStyle = `background: transparent;`;
+          iconColor = app.color;
+          break;
+        case 'duotone':
+          boxStyle = `background: ${state.accentColor};`;
+          iconColor = '#090a0f';
+          break;
+        default: // gradient
+          boxStyle = `background: linear-gradient(145deg, ${app.color}, #111827);`;
+          iconColor = '#ffffff';
+      }
+
+      const glyphSize = Math.round(sizePx * 0.44);
+      return `
+        <div class="relative inline-flex items-center justify-center group-hover:scale-105 transition-transform">
+          ${badgeHtml}
+          <div class="${maskClass} flex items-center justify-center shadow-md" style="width:${sizePx}px; height:${sizePx}px; filter:${filterCss}; ${boxStyle}">
+            <svg style="width:${glyphSize}px; height:${glyphSize}px; color:${iconColor};" fill="currentColor" viewBox="0 0 24 24"><path d="${app.glyph}"/></svg>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // LIVE ANDROID PHONE SIMULATOR RENDERER (16 ARCHITECTURES + ALL CONTROLS)
+    // =========================================================================
+    function renderPhoneSimulator() {
+      const screen = document.getElementById('phoneScreen');
+      screen.classList.remove('bg-dotmatrix', 'bg-cybergrid', 'bg-retro98', 'font-sans', 'font-display', 'font-mono', 'font-cyber', 'font-editorial');
+      screen.classList.add(`font-${state.fontFamily}`);
+      screen.style.backgroundImage = '';
+      screen.style.backgroundSize = '';
+
+      if (state.customWallpaperDataUrl) {
+        screen.style.background = `url(${state.customWallpaperDataUrl}) center/cover no-repeat`;
+      } else if (state.archetype === 'eink-paper') {
+        screen.style.background = '#e5e5e0';
+      } else if (state.wallpaper === 'dotmatrix') {
+        screen.style.background = '';
+        screen.classList.add('bg-dotmatrix');
+      } else if (state.wallpaper === 'cyber-grid') {
+        screen.style.background = '';
+        screen.classList.add('bg-cybergrid');
+      } else if (state.wallpaper === 'retro-teal') {
+        screen.style.background = '';
+        screen.classList.add('bg-retro98');
+      } else {
+        const wallMap = {
+          'indigo-mesh': 'radial-gradient(circle at 22% 14%, #312e81 0%, #0f172a 56%, #05060a 100%)',
+          'amoled': '#000000',
+          'emerald-aurora': 'radial-gradient(circle at 75% 15%, #065f46 0%, #09151e 58%, #040608 100%)',
+          'sunset-peach': 'radial-gradient(circle at 30% 15%, #9a3412 0%, #4c1d95 55%, #09070d 100%)',
+          'sakura-silk': 'radial-gradient(circle at 70% 15%, #9d174d 0%, #311042 56%, #09060e 100%)',
+          'ocean-abyss': 'radial-gradient(circle at 25% 18%, #0369a1 0%, #0c4a6e 52%, #04070d 100%)',
+          'gold-obsidian': 'radial-gradient(circle at 75% 12%, #78350f 0%, #18181b 52%, #050507 100%)'
+        };
+        screen.style.background = wallMap[state.wallpaper] || wallMap['indigo-mesh'];
+      }
+
+      // 1. RENDER CLOCK WIDGET (6 STYLES)
+      const clockSlot = document.getElementById('phoneClockSlot');
+      if (state.clockStyle === 'hidden') {
+        clockSlot.innerHTML = '';
+      } else if (state.clockStyle === 'pixel-glance') {
+        clockSlot.innerHTML = `
+          <div class="px-1 py-1.5">
+            <div class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>Tue, Nov 17</span>
+              <span class="text-slate-400">&middot;</span>
+              <span style="color:${state.accentColor}">☀️ 68&deg;F</span>
+            </div>
+            <div class="text-[11px] text-slate-300 mt-0.5">${state.appName} &middot; ${ARCH_LABELS[state.archetype]}</div>
+          </div>`;
+      } else if (state.clockStyle === 'stacked-big') {
+        clockSlot.innerHTML = `
+          <div class="flex items-center justify-between px-2 py-1">
+            <div class="leading-none font-extrabold text-4xl tracking-tighter" style="color:${state.accentColor}">
+              <div>11</div>
+              <div class="text-white">00</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-bold text-white">${state.appName}</div>
+              <div class="text-[10px] text-slate-300">Tue, Nov 17 &middot; 68&deg;F</div>
+            </div>
+          </div>`;
+      } else if (state.clockStyle === 'analog-dial') {
+        clockSlot.innerHTML = `
+          <div class="flex items-center justify-between px-3 py-2 rounded-3xl bg-white/[0.07] border border-white/15">
+            <svg class="w-12 h-12" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="21" fill="rgba(0,0,0,0.4)" stroke="${state.accentColor}" stroke-width="2" />
+              <line x1="24" y1="24" x2="24" y2="11" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="24" y1="24" x2="33" y2="24" stroke="${state.accentColor}" stroke-width="2" stroke-linecap="round" />
+              <circle cx="24" cy="24" r="2.5" fill="#ffffff" />
+            </svg>
+            <div class="text-right">
+              <div class="text-xs font-bold text-white">${state.appName}</div>
+              <div class="text-[10px] text-slate-300">Tue, Nov 17 &middot; 68&deg;F</div>
+            </div>
+          </div>`;
+      } else if (state.clockStyle === 'flip-retro') {
+        clockSlot.innerHTML = `
+          <div class="flex items-center justify-center gap-2 py-1">
+            <div class="px-3 py-2 rounded-xl bg-[#151822] border border-white/15 text-2xl font-mono font-extrabold text-white shadow">11</div>
+            <span class="text-xl font-bold" style="color:${state.accentColor}">:</span>
+            <div class="px-3 py-2 rounded-xl bg-[#151822] border border-white/15 text-2xl font-mono font-extrabold text-white shadow">00</div>
+          </div>`;
+      } else { // glass-card
+        clockSlot.innerHTML = `
+          <div class="px-4 py-3 rounded-3xl border border-white/15 backdrop-blur-md" style="background: rgba(255,255,255,0.09);">
+            <div class="flex items-baseline justify-between">
+              <span class="font-extrabold text-3xl text-white tracking-tight">11:00</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full text-white" style="background:${state.accentColor}44">${state.appName}</span>
+            </div>
+            <p class="text-[11px] text-slate-300 mt-0.5">Tue, Nov 17 &middot; ${ARCH_LABELS[state.archetype]}</p>
+          </div>`;
+      }
+
+      // 2. RENDER MAIN HOME SCREEN ARCHITECTURE (12 DISTINCT LAYOUTS)
+      const homeMain = document.getElementById('phoneHomeMain');
+      homeMain.innerHTML = '';
+
+      const dockCount = state.dockStyle === 'hidden' ? 0 : (state.dockStyle === 'double-row' ? 8 : 4);
+      const dockApps = MOCK_APPS.slice(0, Math.min(dockCount, MOCK_APPS.length));
+      const mainApps = MOCK_APPS.slice(dockCount > 4 ? 4 : 0);
+
+      if (state.archetype === 'niagara-list') {
+        // One-handed vertical Niagara stream
+        const list = document.createElement('div');
+        list.className = 'flex flex-col gap-2 px-1 my-auto';
+        mainApps.slice(0, 6).forEach((app) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'flex items-center gap-3 px-2.5 py-1.5 rounded-2xl hover:bg-white/10 transition text-left group cursor-pointer';
+          row.innerHTML = `
+            ${renderAppIconHtml(app, Math.min(36, state.iconScale))}
+            <span class="text-sm font-semibold text-white">${app.name}</span>
+          `;
+          row.addEventListener('click', () => showToast(`Launched ${app.name}`));
+          list.appendChild(row);
+        });
+        homeMain.appendChild(list);
+
+      } else if (state.archetype === 'windows-tiles') {
+        // Metro Live Tiles mosaic
+        const mosaic = document.createElement('div');
+        mosaic.className = 'grid grid-cols-4 gap-1.5 my-auto';
+        mainApps.slice(0, 7).forEach((app, idx) => {
+          const spanClass = (idx === 0 || idx === 3) ? 'col-span-2 h-20' : 'col-span-1 h-20';
+          const tile = document.createElement('button');
+          tile.type = 'button';
+          tile.className = `${spanClass} p-2.5 rounded-lg flex flex-col justify-between text-left transition hover:brightness-110 cursor-pointer`;
+          tile.style.background = `linear-gradient(135deg, ${app.color}, ${state.accentColor})`;
+          tile.innerHTML = `
+            <svg class="w-5 h-5 text-white self-end" fill="currentColor" viewBox="0 0 24 24"><path d="${app.glyph}"/></svg>
+            <span class="text-[10px] font-bold text-white truncate">${app.name}</span>
+          `;
+          tile.addEventListener('click', () => showToast(`Tile launch: ${app.name}`));
+          mosaic.appendChild(tile);
+        });
+        homeMain.appendChild(mosaic);
+
+      } else if (state.archetype === 'ios-library') {
+        // Smart 2x2 App Library Category Folders
+        const foldersWrap = document.createElement('div');
+        foldersWrap.className = 'grid grid-cols-2 gap-2.5 my-auto';
+        const cats = ['Social', 'Media', 'Tools', 'Featured'];
+        cats.forEach((cat, i) => {
+          const catApps = MOCK_APPS.slice(i * 3, i * 3 + 4);
+          const folder = document.createElement('div');
+          folder.className = 'p-2.5 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-md flex flex-col gap-1.5';
+          folder.innerHTML = `
+            <div class="grid grid-cols-2 gap-1.5">
+              ${catApps.map(a => `<div class="flex justify-center">${renderAppIconHtml(a, 28)}</div>`).join('')}
+            </div>
+            <div class="text-[10px] font-semibold text-center text-slate-200">${cat}</div>
+          `;
+          foldersWrap.appendChild(folder);
+        });
+        homeMain.appendChild(foldersWrap);
+
+      } else if (state.archetype === 'minimal-text') {
+        // Distraction-free text list
+        const textList = document.createElement('div');
+        textList.className = 'flex flex-col gap-2.5 px-3 my-auto';
+        mainApps.slice(0, 6).forEach((app) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'text-left text-base font-bold text-white hover:translate-x-1 transition cursor-pointer';
+          btn.textContent = app.name;
+          btn.addEventListener('click', () => showToast(`Opened ${app.name}`));
+          textList.appendChild(btn);
+        });
+        homeMain.appendChild(textList);
+
+      } else if (state.archetype === 'terminal-cli') {
+        // Linux CLI Terminal launcher
+        const term = document.createElement('div');
+        term.className = 'p-3 rounded-2xl bg-black/80 border border-emerald-500/40 font-mono text-[11px] flex flex-col gap-1.5 my-auto';
+        term.innerHTML = `<div class="text-emerald-400">alex@android:~$ ls /apps</div>`;
+        mainApps.slice(0, 6).forEach((app) => {
+          const line = document.createElement('button');
+          line.type = 'button';
+          line.className = 'text-left text-slate-200 hover:text-emerald-300 truncate cursor-pointer';
+          line.textContent = `> ./${app.name.toLowerCase()}.apk`;
+          line.addEventListener('click', () => showToast(`exec ${app.pkg}`));
+          term.appendChild(line);
+        });
+        homeMain.appendChild(term);
+
+      } else if (state.archetype === 'retro-98') {
+        // Retro 98 desktop icons
+        const retroGrid = document.createElement('div');
+        retroGrid.className = 'grid grid-cols-3 gap-3 my-auto';
+        mainApps.slice(0, 6).forEach((app) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'flex flex-col items-center gap-1 cursor-pointer';
+          item.innerHTML = `
+            ${renderAppIconHtml(app, 38)}
+            <span class="px-1 bg-[#000080] text-white text-[10px] font-mono">${app.name}</span>
+          `;
+          item.addEventListener('click', () => showToast(`Opening ${app.name}.exe`));
+          retroGrid.appendChild(item);
+        });
+        homeMain.appendChild(retroGrid);
+
+      } else if (state.archetype === 'one-ui') {
+        // Samsung One UI Reachability layout (top breathing space, icons anchored low for thumb reach)
+        const reachWrap = document.createElement('div');
+        reachWrap.className = 'mt-auto flex flex-col gap-2';
+        reachWrap.innerHTML = `<div class="text-[10px] font-semibold uppercase tracking-wider text-slate-300/80 px-1">Thumb-Reach Zone</div>`;
+        const grid = document.createElement('div');
+        grid.className = 'grid gap-y-3 gap-x-1.5';
+        grid.style.gridTemplateColumns = `repeat(${state.cols}, minmax(0, 1fr))`;
+        mainApps.slice(0, state.cols * 2).forEach((app) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'flex flex-col items-center gap-1 group cursor-pointer';
+          item.innerHTML = `${renderAppIconHtml(app, state.iconScale)}${state.showLabels ? `<span class="text-[10px] text-slate-200 truncate max-w-[58px]">${app.name}</span>` : ''}`;
+          item.addEventListener('click', () => showToast(`Launched ${app.name}`));
+          grid.appendChild(item);
+        });
+        reachWrap.appendChild(grid);
+        homeMain.appendChild(reachWrap);
+
+      } else if (state.archetype === 'radial-wheel') {
+        // Circular Radial Orbit Launcher
+        const wheel = document.createElement('div');
+        wheel.className = 'relative w-56 h-56 mx-auto my-auto flex items-center justify-center rounded-full border border-white/15 bg-white/[0.04]';
+        const centerBtn = document.createElement('button');
+        centerBtn.type = 'button';
+        centerBtn.className = 'w-14 h-14 rounded-full font-extrabold text-[10px] text-white shadow-lg flex items-center justify-center cursor-pointer';
+        centerBtn.style.background = state.accentColor;
+        centerBtn.textContent = 'APPS';
+        centerBtn.addEventListener('click', () => document.getElementById('phoneDrawerView').classList.remove('hidden'));
+        wheel.appendChild(centerBtn);
+
+        const orbitApps = mainApps.slice(0, 6);
+        orbitApps.forEach((app, idx) => {
+          const angle = (idx / orbitApps.length) * Math.PI * 2 - Math.PI / 2;
+          const x = Math.round(Math.cos(angle) * 82);
+          const y = Math.round(Math.sin(angle) * 82);
+          const node = document.createElement('button');
+          node.type = 'button';
+          node.className = 'absolute cursor-pointer';
+          node.style.transform = `translate(${x}px, ${y}px)`;
+          node.innerHTML = renderAppIconHtml(app, 38);
+          node.addEventListener('click', () => showToast(`Orbit launch: ${app.name}`));
+          wheel.appendChild(node);
+        });
+        homeMain.appendChild(wheel);
+
+      } else if (state.archetype === 'eink-paper') {
+        // Matte E-Ink Paper Reader Launcher
+        const eink = document.createElement('div');
+        eink.className = 'p-3 rounded-2xl border-2 border-black bg-[#f4f4ef] text-black flex flex-col gap-2 my-auto shadow-sm';
+        eink.innerHTML = `<div class="text-[10px] font-mono uppercase tracking-widest border-b border-black pb-1 font-bold">E-Ink Minimal Home</div>`;
+        mainApps.slice(0, 6).forEach((app) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'flex items-center justify-between py-1 border-b border-black/15 text-xs font-bold text-black hover:bg-black hover:text-white px-1.5 transition cursor-pointer';
+          row.innerHTML = `<span>${app.name}</span><span class="font-mono text-[10px]">OPEN &rarr;</span>`;
+          row.addEventListener('click', () => showToast(`Opened ${app.name}`));
+          eink.appendChild(row);
+        });
+        homeMain.appendChild(eink);
+
+      } else if (state.archetype === 'gaming-console') {
+        // Console Deck Hero Card + Horizontal App Shelf
+        const consoleWrap = document.createElement('div');
+        consoleWrap.className = 'flex flex-col gap-2.5 my-auto';
+        const heroApp = mainApps[0] || MOCK_APPS[4];
+        const heroCard = document.createElement('button');
+        heroCard.type = 'button';
+        heroCard.className = 'p-3.5 rounded-3xl border border-white/20 text-left flex items-center justify-between shadow-lg cursor-pointer';
+        heroCard.style.background = `linear-gradient(135deg, ${heroApp.color}AA, #0b0d14)`;
+        heroCard.innerHTML = `
+          <div>
+            <span class="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-black/40 text-white">Featured</span>
+            <div class="text-base font-extrabold text-white mt-1">${heroApp.name}</div>
+            <div class="text-[10px] text-slate-200">Tap to launch full-screen</div>
+          </div>
+          ${renderAppIconHtml(heroApp, 48)}
+        `;
+        heroCard.addEventListener('click', () => showToast(`Launching ${heroApp.name}`));
+        consoleWrap.appendChild(heroCard);
+
+        const shelf = document.createElement('div');
+        shelf.className = 'grid grid-cols-4 gap-2';
+        mainApps.slice(1, 5).forEach((app) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'flex flex-col items-center gap-1 cursor-pointer';
+          item.innerHTML = `${renderAppIconHtml(app, 42)}<span class="text-[9px] text-slate-200 truncate max-w-[54px]">${app.name}</span>`;
+          item.addEventListener('click', () => showToast(`Launched ${app.name}`));
+          shelf.appendChild(item);
+        });
+        consoleWrap.appendChild(shelf);
+        homeMain.appendChild(consoleWrap);
+
+      } else if (state.archetype === 'bento-cards' || state.archetype === 'cyber-hud') {
+        // Bento / Cyber HUD widget + grid
+        const hud = document.createElement('div');
+        hud.className = 'mb-2.5 p-2.5 rounded-2xl bg-white/[0.08] border border-white/15 flex items-center justify-between text-[10px] font-mono';
+        hud.innerHTML = `
+          <div><span class="text-slate-400">CPU</span> <strong style="color:${state.accentColor}">16%</strong></div>
+          <div><span class="text-slate-400">HZ</span> <strong class="text-white">120Hz</strong></div>
+          <div><span class="text-slate-400">BAT</span> <strong class="text-emerald-400">100%</strong></div>
+        `;
+        homeMain.appendChild(hud);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid gap-y-3 gap-x-1.5';
+        grid.style.gridTemplateColumns = `repeat(${state.cols}, minmax(0, 1fr))`;
+        mainApps.slice(0, state.cols * 2).forEach((app) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'flex flex-col items-center gap-1 group cursor-pointer';
+          item.innerHTML = `
+            ${renderAppIconHtml(app, state.iconScale)}
+            ${state.showLabels ? `<span class="text-[10px] font-medium text-slate-200 truncate max-w-[58px]">${app.name}</span>` : ''}
+          `;
+          item.addEventListener('click', () => showToast(`Launched ${app.name}`));
+          grid.appendChild(item);
+        });
+        homeMain.appendChild(grid);
+
+      } else {
+        // Standard configurable grid (Material You, Basic Stock, Liquid Glass, Nothing OS)
+        const grid = document.createElement('div');
+        grid.className = 'grid gap-y-3.5 gap-x-1.5 my-auto';
+        grid.style.gridTemplateColumns = `repeat(${state.cols}, minmax(0, 1fr))`;
+        mainApps.slice(0, state.cols * 2).forEach((app) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'flex flex-col items-center gap-1 group cursor-pointer';
+          item.innerHTML = `
+            ${renderAppIconHtml(app, state.iconScale)}
+            ${state.showLabels ? `<span class="text-[10px] font-medium text-slate-200 truncate max-w-[58px]">${app.name}</span>` : ''}
+          `;
+          item.addEventListener('click', () => showToast(`Launched ${app.name}`));
+          grid.appendChild(item);
+        });
+        homeMain.appendChild(grid);
+      }
+
+      // 3. SEARCH PILL & DOCK RENDERER
+      const searchBarBtn = document.getElementById('phoneSearchBarBtn');
+      const searchIcon = document.getElementById('phoneSearchIcon');
+      const searchText = document.getElementById('phoneSearchText');
+      if (state.showSearch && state.dockStyle !== 'search-integrated') {
+        searchBarBtn.classList.remove('hidden');
+        searchBarBtn.style.borderColor = `${state.accentColor}77`;
+        searchIcon.style.color = state.accentColor;
+        searchText.textContent = `Search ${state.appName}...`;
+      } else {
+        searchBarBtn.classList.add('hidden');
+      }
+
+      const dockSlot = document.getElementById('phoneDockSlot');
+      if (state.dockStyle === 'hidden') {
+        dockSlot.innerHTML = '';
+      } else if (state.archetype === 'retro-98') {
+        dockSlot.innerHTML = `
+          <div class="w-full px-2 py-1.5 bg-[#c0c0c0] text-black border-t-2 border-white flex items-center justify-between text-[11px] font-bold">
+            <span class="px-2 py-0.5 bg-[#c0c0c0] border border-black shadow-inner">Start</span>
+            <span class="font-mono text-[10px]">11:00 AM</span>
+          </div>`;
+      } else {
+        let dockWrapperClass = 'w-full px-3 py-2.5 rounded-[26px] border border-white/15 backdrop-blur-xl grid grid-cols-4 gap-2';
+        let dockBg = 'rgba(255, 255, 255, 0.12)';
+        if (state.dockStyle === 'full-bar') {
+          dockWrapperClass = 'w-full px-3 py-2.5 rounded-2xl border-t border-white/15 grid grid-cols-4 gap-2';
+          dockBg = 'rgba(10, 12, 18, 0.85)';
+        } else if (state.dockStyle === 'transparent') {
+          dockWrapperClass = 'w-full px-2 py-2 grid grid-cols-4 gap-2';
+          dockBg = 'transparent';
+        } else if (state.dockStyle === 'double-row') {
+          dockWrapperClass = 'w-full px-3 py-2.5 rounded-[26px] border border-white/15 backdrop-blur-xl grid grid-cols-4 gap-y-2 gap-x-2';
+        }
+
+        const integratedSearchHtml = (state.dockStyle === 'search-integrated')
+          ? `<div class="col-span-4 mb-1.5 px-3 py-1.5 rounded-full bg-black/45 border border-white/15 text-[10px] text-slate-300 flex items-center justify-between"><span>Search ${state.appName}...</span><span style="color:${state.accentColor}">G</span></div>`
+          : '';
+
+        dockSlot.innerHTML = `
+          <div class="${dockWrapperClass}" style="background:${dockBg}">
+            ${integratedSearchHtml}
+            ${dockApps.map(app => `
+              <button type="button" data-dockapp="${app.name}" class="dock-app-btn flex items-center justify-center group cursor-pointer">
+                ${renderAppIconHtml(app, Math.min(44, state.iconScale))}
+              </button>
+            `).join('')}
+          </div>`;
+
+        dockSlot.querySelectorAll('.dock-app-btn').forEach(btn => {
+          btn.addEventListener('click', () => showToast(`Dock launch: ${btn.getAttribute('data-dockapp')}`));
+        });
+      }
+
+      // 4. APP DRAWER GRID
+      const catBar = document.getElementById('drawerCategoryBar');
+      catBar.style.display = state.showCategories ? 'flex' : 'none';
+
+      const drawerGrid = document.getElementById('phoneDrawerGrid');
+      drawerGrid.style.gridTemplateColumns = `repeat(${state.cols}, minmax(0, 1fr))`;
+      drawerGrid.innerHTML = '';
+
+      const filteredApps = MOCK_APPS.filter((a) => {
+        const matchesCat = !state.showCategories || state.drawerCategory === 'All' || a.cat === state.drawerCategory;
+        const matchesText = !state.drawerFilter || a.name.toLowerCase().includes(state.drawerFilter.toLowerCase());
+        return matchesCat && matchesText;
+      });
+
+      filteredApps.forEach((app) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'flex flex-col items-center gap-1 cursor-pointer group';
+        btn.innerHTML = `
+          ${renderAppIconHtml(app, 40)}
+          <span class="text-[9px] text-slate-300 truncate max-w-[54px]">${app.name}</span>
+        `;
+        btn.addEventListener('click', () => {
+          if (app.name === 'Settings') {
+            document.getElementById('phoneDrawerView').classList.add('hidden');
+            openSimSettingsView();
+          } else {
+            showToast(`Opened ${app.name}`);
+            document.getElementById('phoneDrawerView').classList.add('hidden');
+          }
+        });
+        drawerGrid.appendChild(btn);
+      });
+
+      // 5. RENDER IN-APP LAUNCHER SETTINGS PAGE PREVIEW
+      renderSimSettingsView();
+    }
+
+    function renderSimSettingsView() {
+      const view = document.getElementById('phoneSettingsView');
+      const body = document.getElementById('phoneSettingsBody');
+      document.getElementById('simSettingsHeaderTitle').textContent = `${state.appName} Settings`;
+      document.getElementById('simSettingsStyleTag').textContent = SETTINGS_STYLE_LABELS[state.settingsStyle] || 'Material You Cards';
+
+      if (state.settingsStyle === 'oled-minimal') {
+        view.style.background = '#000000';
+      } else if (state.settingsStyle === 'cyber-console') {
+        view.style.background = 'rgba(6, 10, 20, 0.97)';
+      } else {
+        view.style.background = 'rgba(11, 13, 20, 0.96)';
+      }
+
+      const cardClass = state.settingsStyle === 'oled-minimal'
+        ? 'p-3 rounded-xl border border-white/15 bg-black flex items-center justify-between'
+        : state.settingsStyle === 'cyber-console'
+        ? 'p-3 rounded-lg border border-emerald-400/35 bg-emerald-950/20 font-mono flex items-center justify-between'
+        : state.settingsStyle === 'bottom-sheet'
+        ? 'p-3 rounded-3xl bg-white/[0.08] backdrop-blur-md flex items-center justify-between'
+        : 'p-3 rounded-2xl bg-indigo-500/15 border border-indigo-400/25 flex items-center justify-between';
+
+      body.innerHTML = `
+        <div class="${cardClass}">
+          <div><div class="font-bold text-white">Home Architecture</div><div class="text-[10px] text-slate-400">${ARCH_LABELS[state.archetype]}</div></div>
+          <span class="text-[10px] font-mono" style="color:${state.accentColor}">ACTIVE</span>
+        </div>
+        <div class="${cardClass}">
+          <div><div class="font-bold text-white">Icon Shape &amp; Filter</div><div class="text-[10px] text-slate-400">${state.iconShape} &middot; ${state.iconFilter}</div></div>
+          <span class="text-[10px] font-mono text-slate-300">${state.cols} cols</span>
+        </div>
+        <div class="${cardClass}">
+          <div><div class="font-bold text-white">Set as Default Home App</div><div class="text-[10px] text-slate-400">Open Android System Picker</div></div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background:${state.accentColor}">SET</span>
+        </div>
+        <div class="${cardClass}">
+          <div><div class="font-bold text-white">Wallpaper &amp; Blur</div><div class="text-[10px] text-slate-400">${state.labWallpaperBlur ? '120Hz GPU Blur Enabled' : 'Standard Surface'}</div></div>
+          <span class="text-[10px] text-emerald-400">ON</span>
+        </div>
+      `;
+    }
+
+    function openSimSettingsView() {
+      renderSimSettingsView();
+      document.getElementById('phoneSettingsView').classList.remove('hidden');
+    }
+
+    const drawerView = document.getElementById('phoneDrawerView');
+    const settingsView = document.getElementById('phoneSettingsView');
+    document.getElementById('toggleDrawerSimBtn').addEventListener('click', () => {
+      settingsView.classList.add('hidden');
+      drawerView.classList.toggle('hidden');
+    });
+    document.getElementById('toggleSettingsSimBtn').addEventListener('click', () => {
+      drawerView.classList.add('hidden');
+      settingsView.classList.toggle('hidden');
+    });
+    document.getElementById('closeSettingsSimBtn').addEventListener('click', () => settingsView.classList.add('hidden'));
+    document.getElementById('phoneGestureHandle').addEventListener('click', () => drawerView.classList.remove('hidden'));
+    document.getElementById('phoneSearchBarBtn').addEventListener('click', () => {
+      drawerView.classList.remove('hidden');
+      document.getElementById('drawerFilterInput').focus();
+    });
+    document.getElementById('closeDrawerSimBtn').addEventListener('click', () => drawerView.classList.add('hidden'));
+
+    document.getElementById('drawerFilterInput').addEventListener('input', (e) => {
+      state.drawerFilter = e.target.value;
+      renderPhoneSimulator();
+    });
+
+    document.querySelectorAll('.dcat-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.dcat-pill').forEach((p) => {
+          p.className = 'dcat-pill px-2.5 py-1 rounded-full bg-white/[0.07] text-[10px] text-slate-300 cursor-pointer';
+        });
+        pill.className = 'dcat-pill active px-2.5 py-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white cursor-pointer';
+        state.drawerCategory = pill.getAttribute('data-cat');
+        renderPhoneSimulator();
+      });
+    });
+
+    // =========================================================================
+    // PROGRAMMATIC LOGO & ANDROID ADAPTIVE VECTOR ICON GENERATOR
+    // =========================================================================
+    function buildProgrammaticIconAssets() {
+      const bg1 = state.iconBgStart;
+      const bg2 = state.iconBgEnd;
+      const fg = state.iconFgColor;
+
+      let glyphSvg = '';
+      let vectorPathXml = '';
+
+      if (state.logoGlyph === 'cat') {
+        glyphSvg = `
+          <polygon points="30,44 33,24 48,36" fill="${fg}" />
+          <polygon points="78,44 75,24 60,36" fill="${fg}" />
+          <circle cx="54" cy="56" r="24" fill="${fg}" />
+          <circle cx="45" cy="53" r="3.5" fill="#090a0f" />
+          <circle cx="63" cy="53" r="3.5" fill="#090a0f" />
+          <polygon points="51,60 57,60 54,64" fill="#ffffff" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:pathData="M30,44 L33,24 L48,36 L60,36 L75,24 L78,44 A24,24 0 1,1 30,44 Z" />
+    <path android:fillColor="#090A0F" android:pathData="M45,50a3.5,3.5 0 1,0 0,7a3.5,3.5 0 1,0 0,-7zM63,50a3.5,3.5 0 1,0 0,7a3.5,3.5 0 1,0 0,-7z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M51,60 L57,60 L54,64 Z" />`;
+      } else if (state.logoGlyph === 'orbit') {
+        glyphSvg = `
+          <circle cx="54" cy="54" r="14" fill="${fg}" />
+          <ellipse cx="54" cy="54" rx="30" ry="11" transform="rotate(-28 54 54)" fill="none" stroke="#ffffff" stroke-width="4" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:pathData="M54,40a14,14 0 1,0 0,28a14,14 0 1,0 0,-28z" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="4" android:fillColor="#00000000" android:pathData="M26,64 C32,42 76,34 82,44 C88,54 44,74 26,64 Z" />`;
+      } else if (state.logoGlyph === 'bolt') {
+        glyphSvg = `<polygon points="58,24 34,58 52,58 48,84 74,50 56,50" fill="${fg}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:strokeColor="#FFFFFF" android:strokeWidth="2" android:pathData="M58,24 L34,58 L52,58 L48,84 L74,50 L56,50 Z" />`;
+      } else if (state.logoGlyph === 'crown') {
+        glyphSvg = `<polygon points="26,70 30,38 44,52 54,32 64,52 78,38 82,70" fill="${fg}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:strokeColor="#FFFFFF" android:strokeWidth="2" android:pathData="M26,70 L30,38 L44,52 L54,32 L64,52 L78,38 L82,70 Z" />`;
+      } else if (state.logoGlyph === 'flame') {
+        glyphSvg = `<path d="M54,24 C66,38 76,48 76,62 A22,22 0 1,1 32,62 C32,50 40,42 46,34 C46,42 52,44 54,24 Z" fill="${fg}" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:pathData="M54,24 C66,38 76,48 76,62 A22,22 0 1,1 32,62 C32,50 40,42 46,34 C46,42 52,44 54,24 Z" />`;
+      } else if (state.logoGlyph === 'wave') {
+        glyphSvg = `
+          <rect x="30" y="44" width="6" height="20" rx="3" fill="#ffffff" />
+          <rect x="42" y="32" width="6" height="44" rx="3" fill="${fg}" />
+          <rect x="54" y="26" width="6" height="56" rx="3" fill="#ffffff" />
+          <rect x="66" y="36" width="6" height="36" rx="3" fill="${fg}" />
+          <rect x="78" y="46" width="6" height="16" rx="3" fill="#ffffff" />`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:pathData="M42,32h6v44h-6zM66,36h6v36h-6z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M30,44h6v20h-6zM54,26h6v56h-6zM78,46h6v16h-6z" />`;
+      } else if (state.logoGlyph === 'monogram') {
+        const letter = (state.appName || 'D').charAt(0).toUpperCase();
+        glyphSvg = `<text x="54" y="69" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="46" fill="${fg}">${letter}</text>`;
+        vectorPathXml = `    <path android:fillColor="${fg}" android:pathData="M36,30h36v10h-13v38h-10v-38h-13z" />`;
+      } else {
+        glyphSvg = `
+          <rect x="30" y="30" width="20" height="20" rx="6" fill="#ffffff" />
+          <rect x="58" y="30" width="20" height="20" rx="10" fill="${fg}" />
+          <rect x="30" y="58" width="20" height="20" rx="10" fill="${fg}" fill-opacity="0.7" />
+          <rect x="58" y="58" width="20" height="20" rx="6" fill="#ffffff" fill-opacity="0.9" />`;
+        vectorPathXml = `    <path android:fillColor="#FFFFFF" android:pathData="M36,30h8a6,6 0 0,1 6,6v8a6,6 0 0,1 -6,6h-8a6,6 0 0,1 -6,-6v-8a6,6 0 0,1 6,-6z" />
+    <path android:fillColor="${fg}" android:pathData="M68,30a10,10 0 1,1 0,20a10,10 0 1,1 0,-20z" />
+    <path android:fillColor="${fg}" android:fillAlpha="0.75" android:pathData="M40,58a10,10 0 1,1 0,20a10,10 0 1,1 0,-20z" />
+    <path android:fillColor="#E6FFFFFF" android:pathData="M64,58h8a6,6 0 0,1 6,6v8a6,6 0 0,1 -6,6h-8a6,6 0 0,1 -6,-6v-8a6,6 0 0,1 6,-6z" />`;
+      }
+
+      const rxMap = { squircle: '28', circle: '54', rounded: '16', hex: '22' };
+      const rx = rxMap[state.logoShape] || '28';
+
+      const svgCode = `<svg viewBox="0 0 108 108" width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="launcherBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${bg1}" />
+      <stop offset="100%" stop-color="${bg2}" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="100" height="100" rx="${rx}" fill="url(#launcherBg)" />
+  ${glyphSvg}
+</svg>`;
+
+      const foregroundXml = `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+${vectorPathXml}
+</vector>`;
+
+      const backgroundXml = `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="${bg1}" android:pathData="M0,0h108v108h-108z" />
+    <path android:fillColor="${bg2}" android:fillAlpha="0.55" android:pathData="M0,54L108,0L108,108L0,108Z" />
+</vector>`;
+
+      return { svgCode, foregroundXml, backgroundXml };
+    }
+
+    function renderIconCoder() {
+      const { svgCode, foregroundXml } = buildProgrammaticIconAssets();
+      const thumbHtml = svgCode.replace('width="512" height="512"', 'width="100%" height="100%"');
+      document.getElementById('iconPreviewAdaptive').innerHTML = thumbHtml;
+      document.getElementById('iconPreviewCircle').innerHTML = thumbHtml;
+      document.getElementById('iconPreviewMono').innerHTML = thumbHtml;
+      document.getElementById('vectorXmlPreview').textContent = foregroundXml;
+
+      const labelEl = document.getElementById('iconPreviewHomeLabel');
+      if (labelEl) labelEl.textContent = state.appName;
+      const miniPreview = document.getElementById('miniHomeIconPreview');
+      if (miniPreview) miniPreview.innerHTML = thumbHtml;
+      const miniName = document.getElementById('miniHomeIconName');
+      if (miniName) miniName.textContent = state.appName;
+    }
+
+    // =========================================================================
+    // PROCEDURAL WALLPAPER GENERATOR (1080x2400 CANVAS + CUSTOM FILE UPLOAD)
+    // =========================================================================
+    function generateProceduralWallpaper(seedOffset = 0) {
+      const canvas = document.getElementById('wallpaperGenCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.fillStyle = state.wallBaseColor;
+      ctx.fillRect(0, 0, w, h);
+
+      const rand = (n) => Math.abs(Math.sin(n * 12.9898 + seedOffset * 78.233)) % 1;
+
+      if (state.wallGenPattern === 'cyber-orbs') {
+        for (let i = 0; i < 6; i++) {
+          const cx = rand(i + 1) * w;
+          const cy = rand(i + 10) * h;
+          const r = 160 + rand(i + 20) * 240;
+          const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, r);
+          grad.addColorStop(0, i % 2 === 0 ? state.wallColor1 : state.wallColor2);
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+        }
+      } else if (state.wallGenPattern === 'topographic') {
+        ctx.strokeStyle = state.wallColor1;
+        ctx.lineWidth = 2;
+        for (let y = 60; y < h; y += 34) {
+          ctx.beginPath();
+          for (let x = 0; x <= w; x += 20) {
+            const wave = Math.sin(x * 0.012 + y * 0.015 + seedOffset) * 26;
+            if (x === 0) ctx.moveTo(x, y + wave);
+            else ctx.lineTo(x, y + wave);
+          }
+          ctx.globalAlpha = 0.35;
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      } else if (state.wallGenPattern === 'pixel-stars') {
+        for (let i = 0; i < 160; i++) {
+          const sx = rand(i * 3) * w;
+          const sy = rand(i * 7) * h;
+          const sz = rand(i * 11) > 0.8 ? 4 : 2;
+          ctx.fillStyle = i % 3 === 0 ? state.wallColor1 : (i % 3 === 1 ? state.wallColor2 : '#ffffff');
+          ctx.fillRect(sx, sy, sz, sz);
+        }
+      } else if (state.wallGenPattern === 'sunset-dunes') {
+        const sky = ctx.createLinearGradient(0, 0, 0, h);
+        sky.addColorStop(0, state.wallBaseColor);
+        sky.addColorStop(0.55, state.wallColor1);
+        sky.addColorStop(1, state.wallColor2);
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h);
+
+        for (let layer = 0; layer < 4; layer++) {
+          ctx.fillStyle = `rgba(5, 6, 12, ${0.25 + layer * 0.18})`;
+          ctx.beginPath();
+          ctx.moveTo(0, h);
+          const baseH = h * (0.52 + layer * 0.11);
+          for (let x = 0; x <= w; x += 25) {
+            ctx.lineTo(x, baseH + Math.sin(x * 0.008 + layer + seedOffset) * 45);
+          }
+          ctx.lineTo(w, h);
+          ctx.closePath();
+          ctx.fill();
+        }
+      } else if (state.wallGenPattern === 'amoled-prism') {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, w, h);
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, state.wallColor1);
+        grad.addColorStop(1, state.wallColor2);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 9; i++) {
+          ctx.strokeRect(40 + i * 24, 140 + i * 65, w - (80 + i * 48), h - (280 + i * 130));
+        }
+      } else {
+        // aurora-waves
+        const g1 = ctx.createRadialGradient(w * 0.25, h * 0.2, 20, w * 0.25, h * 0.2, 480);
+        g1.addColorStop(0, state.wallColor1);
+        g1.addColorStop(1, 'transparent');
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, w, h);
+
+        const g2 = ctx.createRadialGradient(w * 0.8, h * 0.75, 20, w * 0.8, h * 0.75, 460);
+        g2.addColorStop(0, state.wallColor2);
+        g2.addColorStop(1, 'transparent');
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      state.customWallpaperDataUrl = canvas.toDataURL('image/png');
+      renderPhoneSimulator();
+    }
+
+    document.querySelectorAll('.wgen-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.wgen-pill').forEach((b) => {
+          b.className = 'wgen-pill py-2.5 px-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer';
+        });
+        p.className = 'wgen-pill active py-2.5 px-3 rounded-2xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer';
+        state.wallGenPattern = p.getAttribute('data-wgen');
+        generateProceduralWallpaper(Math.random() * 10);
+      });
+    });
+
+    ['wallColor1', 'wallColor2', 'wallBaseColor'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', (e) => {
+        state[id] = e.target.value;
+        generateProceduralWallpaper(1);
+      });
+    });
+
+    document.getElementById('regenWallpaperBtn').addEventListener('click', () => {
+      generateProceduralWallpaper(Math.random() * 50);
+      showToast('Generated new wallpaper variation & applied to phone!');
+    });
+
+    document.getElementById('uploadWallpaperInput').addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('wallpaperGenCanvas');
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          state.customWallpaperDataUrl = canvas.toDataURL('image/png');
+          renderPhoneSimulator();
+          showToast('Custom wallpaper uploaded & synced to phone + APK!');
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('downloadWallpaperPngBtn').addEventListener('click', () => {
+      const canvas = document.getElementById('wallpaperGenCanvas');
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${state.appName.toLowerCase()}-wallpaper.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
+
+    document.querySelectorAll('.lshape-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.lshape-pill').forEach((b) => {
+          b.className = 'lshape-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer';
+        });
+        p.className = 'lshape-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer';
+        state.logoShape = p.getAttribute('data-lshape');
+        refreshAllOutputs();
+      });
+    });
+
+    document.querySelectorAll('.glyph-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.glyph-pill').forEach((b) => {
+          b.className = 'glyph-pill py-2 px-3 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-slate-300 cursor-pointer';
+        });
+        p.className = 'glyph-pill active py-2 px-3 rounded-xl border border-indigo-400/60 bg-indigo-500/20 text-xs font-bold text-white cursor-pointer';
+        state.logoGlyph = p.getAttribute('data-glyph');
+        refreshAllOutputs();
+      });
+    });
+
+    ['iconBgStart', 'iconBgEnd', 'iconFgColor'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', (e) => {
+        state[id] = e.target.value;
+        refreshAllOutputs();
+      });
+    });
+
+    document.getElementById('downloadLogoSvgBtn').addEventListener('click', () => {
+      const { svgCode } = buildProgrammaticIconAssets();
+      triggerDownload(`${state.appName.toLowerCase()}-icon.svg`, svgCode, 'image/svg+xml');
+    });
+
+    document.getElementById('downloadVectorXmlBtn').addEventListener('click', () => {
+      const { foregroundXml } = buildProgrammaticIconAssets();
+      triggerDownload('ic_launcher_foreground.xml', foregroundXml, 'application/xml');
+    });
+
+    // =========================================================================
+    // KOTLIN, ANDROIDMANIFEST, GRADLE & GITHUB ACTIONS CODE GENERATOR
+    // =========================================================================
+    function getPackageName() {
+      const cleanUser = (state.githubUser || 'yourname').toLowerCase().replace(/[^a-z0-9]/g, '') || 'yourname';
+      const cleanApp = (state.appName || 'mylauncher').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mylauncher';
+      return `com.${cleanUser}.${cleanApp}`;
+    }
+
+    function generateProjectFiles() {
+      const pkg = getPackageName();
+      const pkgPath = pkg.replace(/\./g, '/');
+      const { foregroundXml, backgroundXml } = buildProgrammaticIconAssets();
+
+      const extraPermissions = [
+        '    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />',
+        '    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />'
+      ];
+
+      const extraManifestServices = [];
+      if (state.labDoubleTapLock) {
+        extraManifestServices.push(`        <service
+            android:name=".LockAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+        </service>`);
+      }
+      if (state.labNotifBadges) {
+        extraManifestServices.push(`        <service
+            android:name=".BadgeNotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>`);
+      }
+
+      const androidManifestXml = `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+${extraPermissions.join('\n')}
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="${state.appName}"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:clearTaskOnLaunch="true"
+            android:stateNotNeeded="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+${extraManifestServices.join('\n')}
+    </application>
+</manifest>`;
+
+      const cornerRadiusDp = state.iconShape === 'circle' ? 28 : (state.iconShape === 'sharp' ? 4 : 16);
+      const showClockWidget = state.clockStyle !== 'hidden';
+      const archLabelSafe = (ARCH_LABELS[state.archetype] || 'Custom').replace(/"/g, '');
+      const settingsStyleLabelSafe = (SETTINGS_STYLE_LABELS[state.settingsStyle] || 'Material You').replace(/"/g, '');
+      const appNameSafe = (state.appName || 'DriftLauncher').replace(/"/g, '');
+
+      const blurHookCode = state.labWallpaperBlur
+        ? `        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes.blurBehindRadius = 48
+        }`
+        : '';
+
+      const rootHelperCode = state.labRootHelper
+        ? `    private fun runRootCommand(cmd: String) {
+        try {
+            Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Root/Shizuku unavailable", Toast.LENGTH_SHORT).show()
+        }
+    }`
+        : '';
+
+      const mainActivityKt = [
+        `package ${pkg}`,
+        '',
+        'import android.annotation.SuppressLint',
+        'import android.app.AlertDialog',
+        'import android.content.Intent',
+        'import android.content.pm.PackageManager',
+        'import android.graphics.Color',
+        'import android.graphics.ColorMatrix',
+        'import android.graphics.ColorMatrixColorFilter',
+        'import android.graphics.drawable.Drawable',
+        'import android.graphics.drawable.GradientDrawable',
+        'import android.net.Uri',
+        'import android.os.Build',
+        'import android.os.Bundle',
+        'import android.provider.Settings',
+        'import android.text.Editable',
+        'import android.text.TextWatcher',
+        'import android.view.Gravity',
+        'import android.view.View',
+        'import android.view.ViewGroup',
+        'import android.widget.*',
+        'import androidx.appcompat.app.AppCompatActivity',
+        'import androidx.recyclerview.widget.GridLayoutManager',
+        'import androidx.recyclerview.widget.RecyclerView',
+        '',
+        'data class AppEntry(',
+        '    val label: String,',
+        '    val packageName: String,',
+        '    val icon: Drawable',
+        ')',
+        '',
+        'class MainActivity : AppCompatActivity() {',
+        '',
+        `    private val launcherArchitecture = "${state.archetype}"`,
+        `    private val iconShapePreset = "${state.iconShape}"`,
+        `    private val iconPackShader = "${state.iconPack}"`,
+        `    private val iconColorFilter = "${state.iconFilter}"`,
+        `    private val settingsPageStyle = "${state.settingsStyle}"`,
+        `    private val gridColumns = ${state.archetype === 'niagara-list' || state.archetype === 'minimal-text' || state.archetype === 'terminal-cli' ? 1 : state.cols}`,
+        `    private val iconSizeDp = ${state.iconScale}`,
+        `    private val showClockWidget = ${showClockWidget}`,
+        `    private val showSearchPill = ${state.showSearch}`,
+        `    private val showIconLabels = ${state.showLabels}`,
+        `    private val accentColorHex = "${state.accentColor}"`,
+        '',
+        '    private var allApps: List<AppEntry> = emptyList()',
+        '    private lateinit var adapter: AppGridAdapter',
+        '',
+        '    override fun onCreate(savedInstanceState: Bundle?) {',
+        '        super.onCreate(savedInstanceState)',
+        '        window.statusBarColor = Color.TRANSPARENT',
+        '        window.navigationBarColor = Color.TRANSPARENT',
+        blurHookCode,
+        '',
+        '        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {',
+        '            val highestMode = display?.supportedModes?.maxByOrNull { it.refreshRate }',
+        '            highestMode?.let {',
+        '                window.attributes = window.attributes.apply { preferredDisplayModeId = it.modeId }',
+        '            }',
+        '        }',
+        '',
+        '        val root = LinearLayout(this).apply {',
+        '            orientation = LinearLayout.VERTICAL',
+        '            setBackgroundColor(if (launcherArchitecture == "eink-paper") Color.parseColor("#F4F4EF") else Color.parseColor("#08090D"))',
+        '            setPadding(36, 72, 36, 36)',
+        '        }',
+        '',
+        '        if (showClockWidget) {',
+        '            val clockCard = LinearLayout(this).apply {',
+        '                orientation = LinearLayout.VERTICAL',
+        '                setPadding(40, 32, 40, 32)',
+        '                background = GradientDrawable().apply {',
+        '                    cornerRadius = 56f',
+        '                    setColor(Color.parseColor("#18FFFFFF"))',
+        '                    setStroke(2, Color.parseColor("#26FFFFFF"))',
+        '                }',
+        '                setOnClickListener { expandNotificationShade() }',
+        '                setOnLongClickListener {',
+        '                    openLauncherSettingsDialog()',
+        '                    true',
+        '                }',
+        '            }',
+        '            val clockView = TextClock(this).apply {',
+        '                format12Hour = "hh:mm"',
+        '                format24Hour = "HH:mm"',
+        '                textSize = 36f',
+        '                setTextColor(if (launcherArchitecture == "eink-paper") Color.BLACK else Color.WHITE)',
+        '            }',
+        '            val subtitle = TextView(this).apply {',
+        `                text = "${appNameSafe} - ${archLabelSafe} (Hold for Settings)"`,
+        '                textSize = 12f',
+        '                setTextColor(Color.parseColor(accentColorHex))',
+        '            }',
+        '            clockCard.addView(clockView)',
+        '            clockCard.addView(subtitle)',
+        '            root.addView(clockCard, LinearLayout.LayoutParams(',
+        '                ViewGroup.LayoutParams.MATCH_PARENT,',
+        '                ViewGroup.LayoutParams.WRAP_CONTENT',
+        '            ).apply { bottomMargin = 28 })',
+        '        }',
+        '',
+        '        val recyclerView = RecyclerView(this).apply {',
+        '            layoutManager = GridLayoutManager(this@MainActivity, gridColumns)',
+        '        }',
+        '        adapter = AppGridAdapter(emptyList())',
+        '        recyclerView.adapter = adapter',
+        '        root.addView(recyclerView, LinearLayout.LayoutParams(',
+        '            ViewGroup.LayoutParams.MATCH_PARENT,',
+        '            0,',
+        '            1f',
+        '        ))',
+        '',
+        '        if (showSearchPill) {',
+        '            val searchRow = LinearLayout(this).apply {',
+        '                orientation = LinearLayout.HORIZONTAL',
+        '                gravity = Gravity.CENTER_VERTICAL',
+        '            }',
+        '            val searchInput = EditText(this).apply {',
+        `                hint = "Search ${appNameSafe}..."`,
+        '                setHintTextColor(Color.parseColor("#94A3B8"))',
+        '                setTextColor(Color.WHITE)',
+        '                textSize = 14f',
+        '                setPadding(44, 26, 44, 26)',
+        '                background = GradientDrawable().apply {',
+        '                    cornerRadius = 999f',
+        '                    setColor(Color.parseColor("#181B26"))',
+        '                    setStroke(2, Color.parseColor(accentColorHex))',
+        '                }',
+        '                addTextChangedListener(object : TextWatcher {',
+        '                    override fun afterTextChanged(s: Editable?) {',
+        '                        val q = s?.toString()?.trim()?.lowercase().orEmpty()',
+        '                        adapter.updateList(allApps.filter { it.label.lowercase().contains(q) })',
+        '                    }',
+        '                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}',
+        '                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}',
+        '                })',
+        '            }',
+        '            val settingsBtn = Button(this).apply {',
+        '                text = "SET"',
+        '                textSize = 11f',
+        '                setTextColor(Color.WHITE)',
+        '                background = GradientDrawable().apply {',
+        '                    cornerRadius = 999f',
+        '                    setColor(Color.parseColor("#22FFFFFF"))',
+        '                }',
+        '                setOnClickListener { openLauncherSettingsDialog() }',
+        '            }',
+        '            searchRow.addView(searchInput, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))',
+        '            searchRow.addView(settingsBtn, LinearLayout.LayoutParams(130, 110).apply { leftMargin = 16 })',
+        '            root.addView(searchRow, LinearLayout.LayoutParams(',
+        '                ViewGroup.LayoutParams.MATCH_PARENT,',
+        '                ViewGroup.LayoutParams.WRAP_CONTENT',
+        '            ).apply { topMargin = 20 })',
+        '        }',
+        '',
+        '        setContentView(root)',
+        '        loadInstalledApps()',
+        '    }',
+        '',
+        '    private fun openLauncherSettingsDialog() {',
+        '        val options = arrayOf(',
+        `            "Architecture: ${archLabelSafe}",`,
+        `            "Icon Shape & Filter: ${state.iconShape} (${state.iconFilter})",`,
+        `            "Settings UI Style: ${settingsStyleLabelSafe}",`,
+        `            "Set ${appNameSafe} as Default Home App"`,
+        '        )',
+        '        AlertDialog.Builder(this)',
+        `            .setTitle("${appNameSafe} Settings")`,
+        '            .setItems(options) { _, which ->',
+        '                if (which == 3) {',
+        '                    startActivity(Intent(Settings.ACTION_HOME_SETTINGS))',
+        '                }',
+        '            }',
+        '            .setPositiveButton("Close", null)',
+        '            .show()',
+        '    }',
+        '',
+        '    @SuppressLint("WrongConstant")',
+        '    private fun expandNotificationShade() {',
+        '        try {',
+        '            val sbService = getSystemService("statusbar")',
+        '            val statusBarManager = Class.forName("android.app.StatusBarManager")',
+        '            statusBarManager.getMethod("expandNotificationsPanel").invoke(sbService)',
+        '        } catch (_: Exception) {}',
+        '    }',
+        '',
+        '    private fun loadInstalledApps() {',
+        '        val intent = Intent(Intent.ACTION_MAIN, null).apply {',
+        '            addCategory(Intent.CATEGORY_LAUNCHER)',
+        '        }',
+        '        val resolveInfos = packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL)',
+        '        allApps = resolveInfos',
+        '            .filter { it.activityInfo.packageName != packageName }',
+        '            .map {',
+        '                AppEntry(',
+        '                    label = it.loadLabel(packageManager).toString(),',
+        '                    packageName = it.activityInfo.packageName,',
+        '                    icon = it.loadIcon(packageManager)',
+        '                )',
+        '            }',
+        '            .sortedBy { it.label.lowercase() }',
+        '        adapter.updateList(allApps)',
+        '    }',
+        '',
+        rootHelperCode,
+        '',
+        '    inner class AppGridAdapter(private var items: List<AppEntry>) :',
+        '        RecyclerView.Adapter<AppGridAdapter.AppVH>() {',
+        '',
+        '        inner class AppVH(val container: LinearLayout, val iconView: ImageView, val labelView: TextView) :',
+        '            RecyclerView.ViewHolder(container)',
+        '',
+        '        fun updateList(newItems: List<AppEntry>) {',
+        '            items = newItems',
+        '            notifyDataSetChanged()',
+        '        }',
+        '',
+        '        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppVH {',
+        '            val isListMode = launcherArchitecture == "niagara-list" || launcherArchitecture == "minimal-text" || launcherArchitecture == "terminal-cli"',
+        '            val box = LinearLayout(parent.context).apply {',
+        '                orientation = if (isListMode) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL',
+        '                gravity = if (isListMode) Gravity.CENTER_VERTICAL else Gravity.CENTER',
+        '                setPadding(16, 20, 16, 20)',
+        '            }',
+        '            val px = (iconSizeDp * parent.context.resources.displayMetrics.density).toInt()',
+        '            val icon = ImageView(parent.context).apply {',
+        '                layoutParams = LinearLayout.LayoutParams(px, px)',
+        '                visibility = if (launcherArchitecture == "minimal-text") View.GONE else View.VISIBLE',
+        '                background = GradientDrawable().apply {',
+        `                    cornerRadius = ${cornerRadiusDp * 3}f`,
+        '                    setColor(Color.parseColor("#161924"))',
+        '                }',
+        '                setPadding(12, 12, 12, 12)',
+        '                if (iconColorFilter == "grayscale") {',
+        '                    colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })',
+        '                } else if (iconColorFilter == "vivid-pop") {',
+        '                    colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.75f) })',
+        '                }',
+        '            }',
+        '            val label = TextView(parent.context).apply {',
+        '                textSize = if (isListMode) 15f else 11f',
+        '                setTextColor(if (launcherArchitecture == "eink-paper") Color.BLACK else Color.parseColor("#E2E8F0"))',
+        '                gravity = if (isListMode) Gravity.START else Gravity.CENTER',
+        '                maxLines = 1',
+        '                if (isListMode) setPadding(28, 0, 0, 0)',
+        '                visibility = if (showIconLabels || isListMode) View.VISIBLE else View.GONE',
+        '            }',
+        '            box.addView(icon)',
+        '            box.addView(label)',
+        '            return AppVH(box, icon, label)',
+        '        }',
+        '',
+        '        override fun onBindViewHolder(holder: AppVH, position: Int) {',
+        '            val app = items[position]',
+        '            holder.iconView.setImageDrawable(app.icon)',
+        '            holder.labelView.text = if (launcherArchitecture == "terminal-cli") "> ./" + app.label.lowercase() + ".apk" else app.label',
+        '            holder.container.setOnClickListener {',
+        '                packageManager.getLaunchIntentForPackage(app.packageName)?.let { startActivity(it) }',
+        '            }',
+        '            holder.container.setOnLongClickListener {',
+        '                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {',
+        '                    data = Uri.parse("package:" + app.packageName)',
+        '                })',
+        '                true',
+        '            }',
+        '        }',
+        '',
+        '        override fun getItemCount(): Int = items.size',
+        '    }',
+        '}'
+      ].join('\n');
+
+      const appBuildGradleKts = `plugins {
+    id("com.android.application") version "8.5.2"
+    id("org.jetbrains.kotlin.android") version "1.9.24"
+}
+
+android {
+    namespace = "${pkg}"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "${pkg}"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+}`;
+
+      const rootBuildGradleKts = `plugins {
+    id("com.android.application") version "8.5.2" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+}`;
+
+      const settingsGradleKts = `pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "${state.appName}"
+include(":app")`;
+
+      const gradleProperties = `org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+kotlin.code.style=official`;
+
+      const stringsXml = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">${state.appName}</string>
+</resources>`;
+
+      const githubWorkflowYml = `name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Compile Debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload Installable APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${state.appName}-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk`;
+
+      const adaptiveLauncherXml = `<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>`;
+
+      return {
+        pkg,
+        pkgPath,
+        files: {
+          'MainActivity.kt': {
+            fullPath: `app/src/main/java/${pkgPath}/MainActivity.kt`,
+            content: mainActivityKt
+          },
+          'AndroidManifest.xml': {
+            fullPath: 'app/src/main/AndroidManifest.xml',
+            content: androidManifestXml
+          },
+          'app/build.gradle.kts': {
+            fullPath: 'app/build.gradle.kts',
+            content: appBuildGradleKts
+          },
+          '.github/workflows/build-apk.yml': {
+            fullPath: '.github/workflows/build-apk.yml',
+            content: githubWorkflowYml
+          },
+          'ic_launcher_foreground.xml': {
+            fullPath: 'app/src/main/res/drawable/ic_launcher_foreground.xml',
+            content: foregroundXml
+          }
+        },
+        extraZipFiles: {
+          'build.gradle.kts': rootBuildGradleKts,
+          'settings.gradle.kts': settingsGradleKts,
+          'gradle.properties': gradleProperties,
+          'app/src/main/res/values/strings.xml': stringsXml,
+          'app/src/main/res/drawable/ic_launcher_background.xml': backgroundXml,
+          'app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml': adaptiveLauncherXml,
+          'app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml': adaptiveLauncherXml
+        }
+      };
+    }
+
+    function renderCodeViewer() {
+      const project = generateProjectFiles();
+      const entry = project.files[state.activeCodeFile] || project.files['MainActivity.kt'];
+      document.getElementById('activeCodeFilePath').textContent = entry.fullPath;
+      document.getElementById('codeViewerPre').textContent = entry.content;
+      document.getElementById('activeCodeLineCount').textContent = `${entry.content.split('\n').length} lines`;
+    }
+
+    document.querySelectorAll('.code-file-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.code-file-pill').forEach((p) => {
+          p.className = 'code-file-pill px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 cursor-pointer';
+        });
+        pill.className = 'code-file-pill active px-3.5 py-1.5 rounded-full bg-indigo-500/25 border border-indigo-400/50 text-xs font-mono font-bold text-white cursor-pointer';
+        state.activeCodeFile = pill.getAttribute('data-file');
+        renderCodeViewer();
+      });
+    });
+
+    document.getElementById('copyCurrentCodeBtn').addEventListener('click', () => {
+      const content = document.getElementById('codeViewerPre').textContent;
+      const ta = document.createElement('textarea');
+      ta.value = content;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(`Copied ${state.activeCodeFile} to clipboard!`);
+    });
+
+    // =========================================================================
+    // DYNAMIC GITHUB APK GUIDE UPDATER (UNIVERSAL LINKS + LINUX & WINDOWS)
+    // =========================================================================
+    function renderDynamicGuide() {
+      const user = state.githubUser || 'YOUR-GITHUB-USERNAME';
+      const email = state.githubEmail || 'you@example.com';
+      const repo = state.githubRepo || 'MyLauncher';
+      const app = state.appName || 'MyLauncher';
+      const pkg = getPackageName();
+
+      const createRepoUrl = `https://github.com/new?name=${encodeURIComponent(repo)}`;
+      const repoHomeUrl = `https://github.com/${user}/${repo}`;
+      const actionsUrl = `https://github.com/${user}/${repo}/actions`;
+
+      document.getElementById('packagePreviewPill').textContent = pkg;
+      document.getElementById('guideLivePkgBadge').textContent = pkg;
+      document.getElementById('guideAppNameTitle').textContent = app;
+      document.getElementById('guideZipFilename').textContent = `${app}-android.zip`;
+      document.getElementById('browserGuideZipName').textContent = `${app}-android.zip`;
+      document.getElementById('guideRepoSpan').textContent = repo;
+      document.getElementById('guideFinalAppName').textContent = app;
+      document.getElementById('guideArtifactName').textContent = `${app}-debug-apk`;
+
+      // Update all dynamic clickable GitHub URLs
+      const createLink = document.getElementById('dynamicCreateRepoLink');
+      createLink.href = createRepoUrl;
+      document.getElementById('linkCreateRepoLabel').textContent = repo;
+
+      const step2Link = document.getElementById('step2CreateRepoLink');
+      step2Link.href = createRepoUrl;
+
+      const repoHomeLink = document.getElementById('dynamicRepoHomeLink');
+      repoHomeLink.href = repoHomeUrl;
+      document.getElementById('linkRepoHomeText').textContent = `github.com/${user}/${repo}`;
+
+      const browserRepoLink = document.getElementById('browserGuideRepoLink');
+      browserRepoLink.href = repoHomeUrl;
+      browserRepoLink.textContent = repoHomeUrl;
+
+      const actionsLink = document.getElementById('dynamicActionsLink');
+      actionsLink.href = actionsUrl;
+      document.getElementById('linkActionsText').textContent = `.../${repo}/actions`;
+
+      const guideActionsAnchor = document.getElementById('guideActionsUrl');
+      guideActionsAnchor.href = actionsUrl;
+      guideActionsAnchor.textContent = actionsUrl;
+
+      // Linux / macOS Bash commands (includes git config name & email!)
+      document.getElementById('guideLinuxPre').textContent = `# 1. Unzip your downloaded launcher project
+unzip ~/Downloads/${app}-android.zip -d ~/${repo}
+cd ~/${repo}
+
+# 2. Configure Git with your GitHub username & email
+git config --global user.name "${user}"
+git config --global user.email "${email}"
+
+# 3. Initialize & push to your GitHub repository
+git init -b main
+git add .
+git commit -m "Initial ${app} launcher build"
+git remote add origin https://github.com/${user}/${repo}.git
+git push -u origin main`;
+
+      // Windows PowerShell commands (includes Expand-Archive + git config!)
+      document.getElementById('guideWindowsPre').textContent = `# 1. Unzip your downloaded launcher project
+Expand-Archive -Path "$HOME\\Downloads\\${app}-android.zip" -DestinationPath "$HOME\\${repo}" -Force
+cd "$HOME\\${repo}"
+
+# 2. Configure Git with your GitHub username & email
+git config --global user.name "${user}"
+git config --global user.email "${email}"
+
+# 3. Initialize & push to your GitHub repository
+git init -b main
+git add .
+git commit -m "Initial ${app} launcher build"
+git remote add origin https://github.com/${user}/${repo}.git
+git push -u origin main`;
+    }
+
+    function copyElementText(elId, toastMsg) {
+      const txt = document.getElementById(elId).textContent;
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(toastMsg);
+    }
+
+    document.getElementById('copyLinuxCommandsBtn').addEventListener('click', () => {
+      copyElementText('guideLinuxPre', 'Copied Linux / macOS terminal commands!');
+    });
+
+    document.getElementById('copyWindowsCommandsBtn').addEventListener('click', () => {
+      copyElementText('guideWindowsPre', 'Copied Windows PowerShell commands!');
+    });
+
+    // OS Guide Tab Switcher (Linux/Mac vs Windows vs Browser Drag & Drop)
+    document.querySelectorAll('.os-guide-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const os = pill.getAttribute('data-os');
+        document.querySelectorAll('.os-guide-pill').forEach((p) => {
+          p.className = 'os-guide-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white cursor-pointer';
+        });
+        pill.className = 'os-guide-pill active px-3.5 py-1.5 rounded-full bg-indigo-500 text-xs font-bold text-white cursor-pointer';
+
+        document.querySelectorAll('.os-guide-panel').forEach((panel) => {
+          panel.classList.add('hidden');
+          panel.classList.remove('flex');
+        });
+        const target = document.getElementById(`osPanel-${os}`);
+        if (target) {
+          target.classList.remove('hidden');
+          target.classList.add('flex');
+        }
+      });
+    });
+
+    document.querySelectorAll('.jump-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-jump-tab');
+        const pill = document.querySelector(`.nav-pill[data-tab="${target}"]`);
+        if (pill) pill.click();
+      });
+    });
+
+    // =========================================================================
+    // TOP NAVIGATION TABS, ARCHITECTURE PILLS & .ZIP / .HTML EXPORT HANDLERS
+    // =========================================================================
+    document.querySelectorAll('.nav-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const targetTab = pill.getAttribute('data-tab');
+        document.querySelectorAll('.nav-pill').forEach((p) => {
+          p.className = 'nav-pill px-3.5 py-1.5 rounded-full border border-transparent hover:bg-white/[0.06] text-xs font-semibold text-slate-400 hover:text-white whitespace-nowrap transition cursor-pointer';
+        });
+        pill.className = 'nav-pill active px-3.5 py-1.5 rounded-full bg-indigo-500/25 border border-indigo-400/50 text-xs font-bold text-white whitespace-nowrap transition cursor-pointer';
+
+        document.querySelectorAll('.tab-panel').forEach((panel) => {
+          panel.classList.add('hidden');
+          panel.classList.remove('grid', 'flex');
+        });
+        const activePanel = document.getElementById(`tab-${targetTab}`);
+        if (activePanel) {
+          activePanel.classList.remove('hidden');
+          if (targetTab === 'guide' || targetTab === 'code' || targetTab === 'labs') {
+            activePanel.classList.add('flex');
+          } else {
+            activePanel.classList.add('grid');
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll('.arch-pill').forEach((p) => {
+      p.addEventListener('click', () => {
+        state.archetype = p.getAttribute('data-arch');
+        syncControlsFromState();
+        refreshAllOutputs();
+      });
+    });
+
+    function triggerDownload(filename, content, mimeType = 'text/plain') {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    async function exportAndroidProjectZip() {
+      if (typeof JSZip === 'undefined') {
+        showToast('JSZip library still loading—try again in 1 second.');
+        return;
+      }
+      const zip = new JSZip();
+      const project = generateProjectFiles();
+
+      Object.values(project.files).forEach((fileObj) => {
+        zip.file(fileObj.fullPath, fileObj.content);
+      });
+      Object.entries(project.extraZipFiles).forEach(([path, content]) => {
+        zip.file(path, content);
+      });
+
+      // Bundle generated wallpaper PNG into res/drawable/launcher_wallpaper.png
+      const canvas = document.getElementById('wallpaperGenCanvas');
+      if (canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        const base64Data = dataUrl.split(',')[1];
+        if (base64Data) {
+          zip.file('app/src/main/res/drawable/launcher_wallpaper.png', base64Data, { base64: true });
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${state.appName || 'MyLauncher'}-android.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${state.appName || 'MyLauncher'}-android.zip!`);
+    }
+
+    document.getElementById('downloadZipTopBtn').addEventListener('click', exportAndroidProjectZip);
+    document.getElementById('downloadZipGuideBtn').addEventListener('click', exportAndroidProjectZip);
+
+    document.getElementById('downloadHtmlPrototypeBtn').addEventListener('click', () => {
+      const screenHtml = document.getElementById('phoneScreen').outerHTML;
+      const standaloneHtml = [
+        '<!DOCTYPE html>',
+        '<html lang="en">',
+        '<head>',
+        '<meta charset="UTF-8" />',
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+        `<title>${state.appName} — Interactive Launcher Prototype</title>`,
+        '<script src="https://cdn.tailwindcss.com"><' + '/script>',
+        '</head>',
+        '<body class="min-h-screen bg-[#090a0f] flex items-center justify-center p-4">',
+        `<div class="w-[332px] h-[646px] rounded-[46px] p-[11px] bg-slate-900 shadow-2xl">${screenHtml}</div>`,
+        '</body>',
+        '</html>'
+      ].join('\n');
+      triggerDownload(`${(state.appName || 'MyLauncher').toLowerCase()}-launcher.html`, standaloneHtml, 'text/html');
+      showToast(`Downloaded ${(state.appName || 'MyLauncher').toLowerCase()}-launcher.html!`);
+    });
+
+    function refreshAllOutputs() {
+      renderPhoneSimulator();
+      renderIconCoder();
+      renderCodeViewer();
+      renderDynamicGuide();
+    }
+
+    syncControlsFromState();
+    generateProceduralWallpaper(1);
+    refreshAllOutputs();
+  </script>
+</body>
+</html>
